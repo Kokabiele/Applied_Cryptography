@@ -18,7 +18,7 @@ std::string encrypt_public_key_RSA(const std::string& message, const char *publi
     fclose(fp);
     int max_length = RSA_size(rsa_pubkey);
     std::string encrypted_message(max_length, '\0');
-
+    //std::cout << message << std::endl;
     // Cripta il messaggio con la chiave pubblica
     int encrypted_length = RSA_public_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.data()), reinterpret_cast<unsigned char*>(const_cast<char*>(encrypted_message.data())), rsa_pubkey, RSA_PKCS1_PADDING);
     if (encrypted_length == -1) {
@@ -42,7 +42,7 @@ std::string encrypt_private_key_RSA(const std::string& message, const char* priv
     int max_length = RSA_size(rsa_privkey);
     unsigned char* encrypted_message = new unsigned char[max_length];
 
-    int encrypted_length = RSA_private_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.c_str()),
+    int encrypted_length = RSA_private_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.data()),
                                                encrypted_message, rsa_privkey, RSA_PKCS1_PADDING);
 
     if (encrypted_length == -1) {
@@ -70,7 +70,7 @@ std::string decrypt_public_key_RSA(const std::string& encrypted_message, const c
     int max_length = RSA_size(rsa_pubkey);
     unsigned char* decrypted_message = new unsigned char[max_length];
 
-    int decrypted_length = RSA_public_decrypt(encrypted_message.size(), reinterpret_cast<const unsigned char*>(encrypted_message.c_str()),
+    int decrypted_length = RSA_public_decrypt(encrypted_message.size(), reinterpret_cast<const unsigned char*>(encrypted_message.data()),
                                               decrypted_message, rsa_pubkey, RSA_PKCS1_PADDING);
 
     if (decrypted_length == -1) {

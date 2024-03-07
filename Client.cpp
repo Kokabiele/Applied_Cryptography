@@ -66,6 +66,10 @@ int main(int argc, char **argv){
             cout << "Versione decriptata con chiave privata" << endl;
             decripted_suca = decrypt_private_key_RSA(cripted_suca, "Server_private_key.pem");
             cout << decripted_suca << endl;
+            //fino a qua funziona
+            
+
+
             break;
         }
         
