@@ -7,18 +7,19 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <openssl/err.h>
 
-//encrypt with RSA
-std::string encryptRSA(const std::string& message) {
+//encrypt with public key RSA
+std::string encrypt_public_key_RSA(const std::string& message, const char *public_key_path) {
     // Determina la lunghezza massima del messaggio criptato
     RSA* rsa_pubkey = nullptr;
-    FILE* fp = fopen("Server_public_key.pem", "r");
+    FILE* fp = fopen(public_key_path, "r");
     rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
     fclose(fp);
-    int max_length = RSA_size(rsa_pubkey);//crasha qui
+    int max_length = RSA_size(rsa_pubkey);
     std::string encrypted_message(max_length, '\0');
 
-    // Cripta il messaggio
+    // Cripta il messaggio con la chiave pubblica
     int encrypted_length = RSA_public_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.data()), reinterpret_cast<unsigned char*>(const_cast<char*>(encrypted_message.data())), rsa_pubkey, RSA_PKCS1_PADDING);
     if (encrypted_length == -1) {
         std::cerr << "Errore durante la criptazione." << std::endl;
@@ -31,11 +32,67 @@ std::string encryptRSA(const std::string& message) {
     return encrypted_message;
 }
 
-//decrypt with RSA
-std::string decryptRSA(const std::string& encrypted_message) {
+//encrypt with private key RSA
+std::string encrypt_private_key_RSA(const std::string& message, const char* private_key_path) {
+    RSA* rsa_privkey = nullptr;
+    FILE* fp = fopen(private_key_path, "r");
+    rsa_privkey = PEM_read_RSAPrivateKey(fp, nullptr, nullptr, nullptr);
+    fclose(fp);
+
+    int max_length = RSA_size(rsa_privkey);
+    unsigned char* encrypted_message = new unsigned char[max_length];
+
+    int encrypted_length = RSA_private_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.c_str()),
+                                               encrypted_message, rsa_privkey, RSA_PKCS1_PADDING);
+
+    if (encrypted_length == -1) {
+        std::cerr << "Errore durante la criptazione del messaggio con la chiave privata RSA." << std::endl;
+        RSA_free(rsa_privkey);
+        delete[] encrypted_message;
+        return "";
+    }
+
+    std::string encrypted_message_str(reinterpret_cast<char*>(encrypted_message), encrypted_length);
+
+    RSA_free(rsa_privkey);
+    delete[] encrypted_message;
+
+    return encrypted_message_str;
+}
+
+//decrypt with public key RSA
+std::string decrypt_public_key_RSA(const std::string& encrypted_message, const char* public_key_path) {
+    RSA* rsa_pubkey = nullptr;
+    FILE* fp = fopen(public_key_path, "r");
+    rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
+    fclose(fp);
+
+    int max_length = RSA_size(rsa_pubkey);
+    unsigned char* decrypted_message = new unsigned char[max_length];
+
+    int decrypted_length = RSA_public_decrypt(encrypted_message.size(), reinterpret_cast<const unsigned char*>(encrypted_message.c_str()),
+                                              decrypted_message, rsa_pubkey, RSA_PKCS1_PADDING);
+
+    if (decrypted_length == -1) {
+        std::cerr << "Errore durante la decriptazione del messaggio con la chiave pubblica RSA." << std::endl;
+        RSA_free(rsa_pubkey);
+        delete[] decrypted_message;
+        return "";
+    }
+
+    std::string decrypted_message_str(reinterpret_cast<char*>(decrypted_message), decrypted_length);
+
+    RSA_free(rsa_pubkey);
+    delete[] decrypted_message;
+
+    return decrypted_message_str;
+}
+
+//decrypt with private key RSA
+std::string decrypt_private_key_RSA(const std::string& encrypted_message, const char *private_key_path) {
     // Determina la lunghezza massima del messaggio decriptato
     RSA* rsa_privkey = nullptr;
-    FILE* fp = fopen("Server_private_key.pem", "r");
+    FILE* fp = fopen(private_key_path, "r");
     rsa_privkey = PEM_read_RSAPrivateKey(fp, nullptr, nullptr, nullptr);
     fclose(fp);
     int max_length = RSA_size(rsa_privkey);
@@ -184,7 +241,7 @@ DH* generateDHFromParamsFile() {
     return dh_params;
 }
 
-//funzione che presa una struttura restituisce la parte publica del calcolo
+// Funzione che presa una struttura restituisce la parte publica del calcolo
 const BIGNUM* get_pub_key_DH(DH* dh_params){
     // Ottiene la propria chiave pubblica
     const BIGNUM* pub_key;
@@ -219,6 +276,7 @@ const BIGNUM* readDHPublicKeyFromFile() {//const std::string& filename
     return pub_key_def;
 }
 
+// Funzione per il calcolo della chiave privata del DH
 std::vector<unsigned char> computeSharedSecret(const BIGNUM* pub_key_peer, DH* dh_params) {
     // Calcola la lunghezza massima del segreto condiviso
     int shared_secret_len = DH_size(dh_params);

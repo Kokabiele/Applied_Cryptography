@@ -4,8 +4,10 @@
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 #include <vector>
-std::string encryptRSA(const std::string& message);
-std::string decryptRSA(const std::string& encrypted_message);
+std::string encrypt_public_key_RSA(const std::string& message, const char *public_key_path);
+std::string encrypt_private_key_RSA(const std::string& message, const char* private_key_path);
+std::string decrypt_public_key_RSA(const std::string& encrypted_message, const char* public_key_path);
+std::string decrypt_private_key_RSA(const std::string& encrypted_message, const char *private_key_path);
 std::string sha256(const std::string& input);
 bool compareHash(const std::string& inputHash, const std::string& knownHash);
 std::string get_current_timestamp();
