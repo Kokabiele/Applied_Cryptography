@@ -52,11 +52,11 @@ int main(int argc, char **argv){
             string test = sendline;
             // Esci se l'utente ha scritto "quit"
             cout << "Exiting..." << endl;
-            string suca = encryptRSA(test);
+            //string suca = encryptRSA(test);
             cout << "Ora cripto la parola 'quit'" << endl;
-            cout << suca << endl;
+            //cout << suca << endl;
             cout << "Adesso invece la decripto" << endl;
-            cout << decryptRSA(suca) << endl;
+            //cout << decryptRSA(suca) << endl;
             cout << "Adesso creo l'hash della parola quit" << endl;
             string hash_test = sha256("quit");
             cout << hash_test << endl;
@@ -103,6 +103,20 @@ int main(int argc, char **argv){
                 std::cout << std::hex << (int)byte << " "; // Stampa il byte in formato esadecimale
             }
             std::cout << std::endl;
+            cout << "Ora farò questo test: cripto 'quit' con la chiave privata del server e successivamente la decripto con la sua chiave pubblica" << endl;
+            string cripted_suca = encrypt_private_key_RSA(test, "Server_private_key.pem");
+            cout << "Ora cripto la parola 'quit'" << endl;
+            cout << cripted_suca << endl;
+            cout << "Adesso invece la decripto" << endl;
+            string decripted_suca = decrypt_public_key_RSA(cripted_suca, "Server_public_key.pem");
+            cout << decripted_suca << endl;
+            cout << "Qui invece faccio un altro passaggio dove cripto con chiave pubblica e decripto con quella privata" << endl;
+            cout << "Versione criptata con chiave pubblica:" << endl;
+            cripted_suca = encrypt_public_key_RSA(decripted_suca, "Server_public_key.pem");
+            cout << cripted_suca << endl;
+            cout << "Versione decriptata con chiave privata" << endl;
+            decripted_suca = decrypt_private_key_RSA(cripted_suca, "Server_private_key.pem");
+            cout << decripted_suca << endl;
             break;
         }
         

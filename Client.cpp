@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "Utility.hpp"
+#include <nlohmann/json.hpp>
 using namespace std;
 
 #define porta 9000
@@ -18,7 +19,7 @@ int main(int argc, char **argv){
     
     int sockfd, n;
     struct sockaddr_in local_addr, dest_addr;
-    char sendline[1000];
+    char* sendline;
     char recvline[1000];
 
     if (argc != 3)
@@ -45,34 +46,12 @@ int main(int argc, char **argv){
     dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");//indirizzo
     dest_addr.sin_port = htons(porta);//porta
     connect(sockfd, (struct sockaddr *) &dest_addr, sizeof(dest_addr));
-
-    while (fgets(sendline,999,stdin) != NULL)
-    {   
-        if (strcmp(sendline, "quit\n") == 0) {
-            string test = sendline;
-            // Esci se l'utente ha scritto "quit"
-            cout << "Exiting..." << endl;
-            cout << "Ora farò questo test: cripto 'quit' con la chiave privata del server e successivamente la decripto con la sua chiave pubblica" << endl;
-            string cripted_suca = encrypt_private_key_RSA(test, "Server_private_key.pem");
-            cout << "Ora cripto la parola 'quit'" << endl;
-            cout << cripted_suca << endl;
-            cout << "Adesso invece la decripto" << endl;
-            string decripted_suca = decrypt_public_key_RSA(cripted_suca, "Server_public_key.pem");
-            cout << decripted_suca << endl;
-            cout << "Qui invece faccio un altro passaggio dove cripto con chiave pubblica e decripto con quella privata" << endl;
-            cout << "Versione criptata con chiave pubblica:" << endl;
-            cripted_suca = encrypt_public_key_RSA(decripted_suca, "Server_public_key.pem");
-            cout << cripted_suca << endl;
-            cout << "Versione decriptata con chiave privata" << endl;
-            decripted_suca = decrypt_private_key_RSA(cripted_suca, "Server_private_key.pem");
-            cout << decripted_suca << endl;
-            //fino a qua funziona
-            
-
-
-            break;
-        }
-        
+    string exit_command = "";
+    while (exit_command != "quit")
+    {
+        //fase di connessione, l'utente non deve fare nulla
+        //Fase 1
+        sendline = get_username(argv);
         send(sockfd,sendline,strlen(sendline),0);
         n=recv(sockfd,recvline,999,0);
         recvline[n]=0;

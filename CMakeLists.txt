@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.0.0)
+project(crittografia VERSION 0.1.0 LANGUAGES C CXX)
+add_subdirectory(json)
+include(CTest)
+enable_testing()
+
+add_executable(Client_2 Client.cpp Utility.cpp Utility.hpp)#aggiungere a manina i file .cpp qui
+add_executable(Server Server.cpp Utility.cpp Utility.hpp)
+
+find_package(OpenSSL REQUIRED)
+target_link_libraries(Server nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(Client_2 nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)

@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/Client_2.dir/Client.cpp.o CMakeFiles/Client_2.dir/Utility.cpp.o -o Client_2  /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so 

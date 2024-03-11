@@ -297,3 +297,7 @@ std::vector<unsigned char> computeSharedSecret(const BIGNUM* pub_key_peer, DH* d
     
     return shared_secret;
 }
+
+char* get_username (char** argv){
+    return (char*)argv[1];
+}

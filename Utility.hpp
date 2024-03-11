@@ -18,4 +18,5 @@ DH* generateDHFromParamsFile();
 const BIGNUM* get_pub_key_DH(DH* dh_params);
 const BIGNUM* readDHPublicKeyFromFile();
 std::vector<unsigned char> computeSharedSecret(const BIGNUM* pub_key_peer, DH* dh_params);
+char* get_username (char** argv);
 #endif
