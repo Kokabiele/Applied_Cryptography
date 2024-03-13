@@ -28,6 +28,26 @@ std::string generateNonce() {
     //std::cout << nonce << std::endl;
     return nonce;
 }
+
+//funziona, in questo modo posso aggiungere campi al json
+// void modifica_json (json data, string campo1, string campo2){
+//     data.push_back(json::object_t::value_type(campo1, campo2));
+//     std::cout <<data.dump(4) << std::endl;
+// }
+// rimuove un campo a scelta
+// void remove_json (json data, string campo){
+//     cout << "test" << endl;
+//     data.erase(data.find(campo));
+//     std::cout <<data.dump(4) << std::endl;
+// }
+/*
+    Nel main ci sarà
+    json data = {
+        {"Username", ""}
+    };
+    string prova = "mela";
+    modifica_json(data, "suca", prova);
+*/
 int main(int argc, char **argv){
     for(;;){
         std::cout << generateNonce() << std::endl;

@@ -1,5 +1,5 @@
-CMakeFiles/Client_2.dir/Client.cpp.o: \
- /home/user/mio_progetto_crittogragia/Client.cpp \
+CMakeFiles/Server.dir/Protocol.cpp.o: \
+ /home/user/mio_progetto_crittogragia/Protocol.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/10/iostream \
  /usr/include/x86_64-linux-gnu/c++/10/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/10/bits/os_defines.h \
@@ -166,28 +166,6 @@ CMakeFiles/Client_2.dir/Client.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
- /home/user/mio_progetto_crittogragia/Utility.hpp \
- /usr/include/openssl/bn.h /usr/include/openssl/e_os2.h \
- /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
- /usr/include/openssl/opensslv.h /usr/include/openssl/ossl_typ.h \
- /usr/lib/gcc/x86_64-linux-gnu/10/include/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/10/include/syslimits.h \
- /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
- /usr/include/x86_64-linux-gnu/bits/local_lim.h \
- /usr/include/linux/limits.h \
- /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
- /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
- /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
- /usr/include/openssl/crypto.h /usr/include/openssl/safestack.h \
- /usr/include/openssl/stack.h /usr/include/openssl/cryptoerr.h \
- /usr/include/openssl/symhacks.h /usr/include/openssl/bnerr.h \
- /usr/include/openssl/dh.h /usr/include/openssl/bio.h \
- /usr/include/openssl/bioerr.h /usr/include/openssl/asn1.h \
- /usr/include/openssl/asn1err.h /usr/include/openssl/dherr.h \
- /usr/include/c++/10/vector /usr/include/c++/10/bits/stl_uninitialized.h \
- /usr/include/c++/10/bits/stl_vector.h \
- /usr/include/c++/10/bits/stl_bvector.h \
- /usr/include/c++/10/bits/vector.tcc \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/json.hpp \
  /usr/include/c++/10/algorithm /usr/include/c++/10/utility \
  /usr/include/c++/10/bits/stl_relops.h \
@@ -202,6 +180,7 @@ CMakeFiles/Client_2.dir/Client.cpp.o: \
  /usr/include/c++/10/bits/invoke.h /usr/include/c++/10/bits/refwrap.h \
  /usr/include/c++/10/bits/std_function.h /usr/include/c++/10/iterator \
  /usr/include/c++/10/bits/stream_iterator.h /usr/include/c++/10/memory \
+ /usr/include/c++/10/bits/stl_uninitialized.h \
  /usr/include/c++/10/bits/stl_raw_storage_iter.h \
  /usr/include/c++/10/bits/ranges_uninitialized.h \
  /usr/include/c++/10/ext/concurrence.h \
@@ -213,7 +192,10 @@ CMakeFiles/Client_2.dir/Client.cpp.o: \
  /usr/include/c++/10/bits/shared_ptr_atomic.h \
  /usr/include/c++/10/bits/atomic_base.h \
  /usr/include/c++/10/bits/atomic_lockfree_defines.h \
- /usr/include/c++/10/backward/auto_ptr.h \
+ /usr/include/c++/10/backward/auto_ptr.h /usr/include/c++/10/vector \
+ /usr/include/c++/10/bits/stl_vector.h \
+ /usr/include/c++/10/bits/stl_bvector.h \
+ /usr/include/c++/10/bits/vector.tcc \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/adl_serializer.hpp \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/detail/abi_macros.hpp \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/detail/conversions/from_json.hpp \

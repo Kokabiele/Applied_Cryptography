@@ -13,22 +13,33 @@
 using namespace std;
 using namespace nlohmann;
 #define porta 9000
+
+//aggiunge il campo che voglio
+void add_json (json& data, string key, string new_value){
+    data[key] = new_value;
+    std::cout <<data.dump(4) << std::endl;
+}
+//rimuove campo che trova
+void remove_json (json data, string key){
+    data.erase(data.find(key));
+    std::cout <<data.dump(4) << std::endl;
+}
+std::string json_to_string (const json& data){
+    return data.dump();
+}
+json string_to_json(std::string stringa){
+    return json::parse(stringa);
+}
+
 int main(int argc, char**argv)
 {   
-    /*json j = {
-        {"nome", "Mario"},
-        {"cognome", "Rossi"},
-        {"eta", 30}
+    json data = {
+        {"Username", ""},
+        {"Fase", 1}
     };
-
-    // Stampa l'oggetto JSON
-    std::cout << j.dump(4) << std::endl;
-    */
-   
     int sockfd,newsockfd,n;
     struct sockaddr_in local_addr,remote_addr;
     socklen_t len;
-    //char mesg[1000];
     char sendline[1000];
     char recvline[1000];
     if((sockfd=socket(AF_INET,SOCK_STREAM,0)) <0)
@@ -49,25 +60,47 @@ int main(int argc, char**argv)
     for(;;)
     { 
         len = sizeof(remote_addr);
-        newsockfd = accept(sockfd,(struct sockaddr *) 
-        &remote_addr, &len);
+        newsockfd = accept(sockfd,(struct sockaddr *) &remote_addr, &len);
         if (fork() == 0)
-        { cout << "test" << endl;
+        {
             close(sockfd);
             for(;;)
-            { 
-                cout << "test1" << endl;
+            {
+                //ricevo il messaggio dal client
                 n = recv(newsockfd,recvline,999,0);
-                if(n==0) return 0;
-                recvline[n] = 0;
-                printf("\n Received from %s:%d the following message:%s\n", inet_ntoa(remote_addr.sin_addr), ntohs(remote_addr.sin_port), recvline );
-                if (strcmp(recvline, "franco") == 0){
-                    cout << "ci siamo" << endl;
-                    string nonce = generateNonce();
-                    sprintf(sendline, "ok|");
-                    strcat(sendline, nonce.c_str());
-                    send(newsockfd,sendline,999,0);
+                if(n==0)
+                {
+                    std::cout << "errore nella comunicazione" << std::endl;
+                    return 0;    
                 }
+                recvline[n] = 0;
+                
+                // converto quello che ricevo in una stringa
+                std::string json_str(recvline, n);
+
+                // Conversione della stringa JSON in un oggetto JSON
+                json data = string_to_json(json_str);
+
+                std::cout << "Dati dentro il json (server)" << data.dump(4) << std::endl;
+
+                data["Fase"] = 2;
+                //converto il json in una stringa
+                json_str = json_to_string(data);
+                // mando la stringa al client
+                send(newsockfd, json_str.c_str(), json_str.length(),0);
+
+                // Visualizzazione dei dati ricevuti
+                // std::cout << "Nome: " << data["Username"] << std::endl;
+                // std::cout << "Fase: " << data["Fase"] << std::endl;
+                
+                /*if (received_data["Username"] == "suca"){
+                    cout << "ci siamo" << endl;
+                    data["Fase"] = 2;
+                    remove_json(data, "Username");
+                    add_json(data, "nonce", generateNonce());
+                    string prova = data.dump();
+                    send(newsockfd,sendline,999,0);
+                }*/
                     break;
             } 
             return 0; 
