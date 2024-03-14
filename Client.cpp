@@ -34,22 +34,46 @@ json string_to_json(std::string stringa){
 }
 //fase 1 prende l'user all'inizio.
 //fase 2 ricevo "ok" e nonce
-void protocol(json& data, int& fase){
+void protocol(json& data, int&& fase, const int sockfd){
+    std::string json_str;
+    const BIGNUM* Public_key_DH;
+    DH* C_parameter = nullptr;
     switch (fase) {
         case 1:
-            std::cout << "You chose option 1" << std::endl;
+            // mando solo il nome utente Fase 1
+            std::cout << "Fase 1" << std::endl;
+            json_str = json_to_string(data);
+            send(sockfd, json_str.c_str(), json_str.length(),0);
             break;
         case 2:
-            std::cout << "You chose option 2" << std::endl;
+            // sto ricevendo dal server "ok" e la nonce, levo ok, metto Ya e nonce +1
+            std::cout << "Fase 2 -> 3" << std::endl;
+            //rimuovo l'ok
+            remove_json(data, "Message");
+            //incremento la nonce
+            data["Nonce"] = incrementNonce(data["Nonce"]);
+            //creo i parametri DH
+            C_parameter = generateDHFromParamsFile();
+            //Prendo Ya
+            Public_key_DH = get_pub_key_DH(C_parameter);
+            //Aggiungo Ya nella struttura data
+            add_json(data, "C_DH", bignumToString(Public_key_DH));
+            data["Fase"] = 3;
+            json_str = json_to_string(data);
+            send(sockfd, json_str.c_str(), json_str.length(),0);
             break;
         case 3:
-            std::cout << "You chose option 3" << std::endl;
+            std::cout << "Fase 3" << std::endl;
+            std::cout << data.dump(4) << std::endl;
             break;
         case 4:
-            std::cout << "You chose option 3" << std::endl;
+            std::cout << "Fase 4" << std::endl;
             break;
         case 5:
-            std::cout << "You chose option 3" << std::endl;
+            std::cout << "Fase 5" << std::endl;
+            break;
+        case 6:
+            std::cout << "Fase 6" << std::endl;
             break;
         default:
             std::cout << "Invalid phase" << std::endl;
@@ -96,30 +120,23 @@ int main(int argc, char **argv){
 
     while (exit_command != "quit")
     {   
-        // estraggo la fase
-        // std::string fase_str = data["Fase"];
-        // int fase_int = stoi(fase_str);
 
         //controllo in che fase mi trovo e mi comporto di conseguenza
         switch ((int)data["Fase"]) {
         case 1:
-        // prima fase, il client manda solo il nome utente
-            std::cout << "You chose option 1" << std::endl;
+        // prima fase, il client manda solo il nome utente ottenuto all'inizio
             std::cout << "Fase: " << data["Fase"] << std::endl;
-
-            //converto il json in una stringa prima di mandarlo
-            json_str = json_to_string(data);
-            // mando la stringa al server
-            send(sockfd, json_str.c_str(), json_str.length(),0);
-
+            protocol(data, (int)data["Fase"], sockfd);
             break;
         case 2:
-        // seconda fase, il client riceve {"ok", nonce}
-            std::cout << "You chose option 2" << std::endl;
+        // seconda fase, il client riceve {"ok", nonce} e rispondo 
+            std::cout << "Fase 2 pacchetto ricevuto: " << data.dump(4) <<std::endl;
+            protocol(data, (int)data["Fase"], sockfd);
             break;
         case 3:
         // terza fase, il client manda la nonce + 1 e manda il suo Ya (DH)
             std::cout << "You chose option 3" << std::endl;
+            
             break;
         case 4:
         // quarta fase, il client riceve Yb e un timestamp
@@ -155,7 +172,6 @@ int main(int argc, char **argv){
         //std::cout << "Nome: " << received_data["Username"] << std::endl;
         std::cout << "Fase: " << data["Fase"] << " fine." << std::endl;
         std::cout << "Dati dentro il json(client)" << data.dump(4) << std::endl;
-        break;
-
+        //break;
     }
 }

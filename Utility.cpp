@@ -210,7 +210,7 @@ bool check_nonce (const std::string& mynonce, const std::string& received_nonce)
 DH* generateDHFromParamsFile() {
     FILE* params_file = fopen("DH_params.pem", "r");
     if (!params_file) {
-        std::cout << "Impossibile aprire il file dei parametri DH." << std::endl;
+        std::cout << "Impossibile aprire il file dei parametri DH!." << std::endl;
         return nullptr;
     }
     //estraggo i due parametri pubblici dal file
@@ -247,6 +247,37 @@ const BIGNUM* get_pub_key_DH(DH* dh_params){
     const BIGNUM* pub_key;
     DH_get0_key(dh_params, &pub_key, nullptr);
     return pub_key;
+}
+
+// Funzione per convertire BIGNUM to string
+std::string bignumToString(const BIGNUM* bn) {
+    if (bn == nullptr) {
+        return ""; // Handle the case where BIGNUM pointer is null
+    }
+    
+    char* hexString = BN_bn2hex(bn);
+    if (hexString == nullptr) {
+        return ""; // Handle the case where conversion fails
+    }
+
+    std::string result(hexString);
+    OPENSSL_free(hexString); // Free the memory allocated by BN_bn2hex
+    return result;
+}
+
+// Funzione che converte una stringa in un BIGNUM
+BIGNUM* stringToBignum(const std::string& str) {
+    BIGNUM* bn = BN_new();
+    if (bn == nullptr) {
+        return nullptr; // Handle the case where BN_new fails
+    }
+
+    if (BN_hex2bn(&bn, str.c_str()) == 0) {
+        BN_free(bn);
+        return nullptr; // Handle the case where conversion fails
+    }
+
+    return bn;
 }
 
 // Funzione per estrarre la chiave pubblica DH da un file
