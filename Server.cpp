@@ -11,11 +11,24 @@
 #include <vector>
 #include <unistd.h>
 #include <openssl/evp.h>
+#include <thread>
+#include <chrono>
 #include "Utility.hpp"
 #include <nlohmann/json.hpp>
 using namespace std;
 using namespace nlohmann;
 #define porta 9000
+
+struct protocollo{
+    std::string nome;//OK
+    std::string nonce;
+    std::vector<unsigned char> shared_key;
+    const BIGNUM* Public_key_DH;
+    DH* S_parameter;
+    std::string message;
+    std::string crypt_m;//messaggio criptato
+    std::string decrypt_m;
+};
 
 //aggiunge il campo che voglio
 void add_json (json& data, string key, string new_value){
@@ -33,26 +46,6 @@ std::string json_to_string (const json& data){
 
 json string_to_json(std::string stringa){
     return json::parse(stringa);
-}
-
-// Converto in esadecimale per supportare la libreria json
-std::string bytesToHex(const std::vector<unsigned char>& bytes) {
-    std::stringstream stream;
-    for (unsigned char byte : bytes) {
-        stream << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
-    }
-    return stream.str();
-}
-
-// Converto da esadecimale in byte
-std::vector<unsigned char> hexToBytes(const std::string& hex) {
-    std::vector<unsigned char> bytes;
-    for (size_t i = 0; i < hex.length(); i += 2) {
-        std::string byteString = hex.substr(i, 2);
-        unsigned char byte = static_cast<unsigned char>(std::stoul(byteString, nullptr, 16));
-        bytes.push_back(byte);
-    }
-    return bytes;
 }
 
 // Calcolo l'hash della password insieme al sale
@@ -97,56 +90,82 @@ bool comparePasswordHash(const std::string& password, const std::string& salt, c
     return (hashedPasswordString == storedHash);
 }
 
-std::string protocol(json& data, int&& fase, std::string mynonce){
+void protocol(json& data, protocollo& server){
     //std::string json_str;
-    const BIGNUM* Public_key_DH;
-    DH* S_parameter = nullptr;
-    std::vector<unsigned char> shared_secret;
-    switch (fase) {
+    // const BIGNUM* Public_key_DH;
+    // DH* S_parameter = nullptr;
+    // std::vector<unsigned char> shared_secret;
+    switch ((int)data["Fase"]) {
         case 1:
             // Ho ricevuto la fase 1 dal client
             std::cout << "Fase 1 -> 2" << std::endl;
             if(check_user(data["Username"]) == -1){
                 std::cout << "Utente non trovato" << std::endl;
-                return "-1";
+                exit(-1);
+            }else
+            {
+                std::cout << "Utente trovato" << std::endl;
+                server.nome = data["Username"];
             }
             data["Fase"] = 2;
             add_json(data, "Message", "ok");
-            mynonce = generateNonce();
-            add_json(data, "Nonce", mynonce);
+            server.nonce = generateNonce();
+            add_json(data, "Nonce", server.nonce);
             remove_json(data, "Username");
-            return mynonce;
+            server.message = json_to_string(data);
+            std::cout << "Fase prima di criptare" << server.message << std::endl;
+            server.crypt_m = encrypt_private_key_RSA_block(server.message, "Server_private_key.pem");
+            std::cout << "Vediamo il messaggio decriptato" << server.message << std::endl;
+            std::cout << "Vediamo il messaggio criptato" << server.crypt_m << std::endl;
+            break;
         case 2:
             // non ci entro
-            std::cout << "Fase 2" << std::endl;
+            std::cout << "Fase 2?" << std::endl;
             break;
         case 3:
             // ricevo dal client la nonce +1 e Ya
             std::cout << "Fase 3 -> 4" << std::endl;
-            if(!check_nonce(mynonce, data["Nonce"])){
+            if(!check_nonce(server.nonce, data["Nonce"])){
                 std::cout << "Nonce errata" << std::endl;
                 std::cout << "Nonce ricevuta: " << data["Nonce"] << std::endl;
-                std::cout << "Nonce salvata: " << mynonce << std::endl;
-                return "-1";
+                std::cout << "Nonce salvata: " << server.nonce << std::endl;
+                exit(-1);
             }else{
                 std::cout << "Nonce ricevuta: " << data["Nonce"] << std::endl;
-                std::cout << "Nonce salvata: " << mynonce << std::endl;
+                std::cout << "Nonce salvata: " << server.nonce << std::endl;
             }
+            
             //genero i parametri del server
-            S_parameter = generateDHFromParamsFile();
+            server.S_parameter = generateDHFromParamsFile();
+            
             //Prendo Yb
-            Public_key_DH = get_pub_key_DH(S_parameter);
+            server.Public_key_DH = get_pub_key_DH(server.S_parameter);
+            
             //Aggiungo Yb nella struttura data
-            add_json(data, "S_DH", bignumToString(Public_key_DH));
+            add_json(data, "S_DH", bignumToString(server.Public_key_DH));
+            
             //dato che ho Ya posso generare il segreto
-            shared_secret = computeSharedSecret(stringToBignum(data["C_DH"]), S_parameter);
+            server.shared_key = computeSharedSecret(stringToBignum(data["C_DH"]), server.S_parameter);
+            
+            //rimuovo i campi del json che mi aspetto
             remove_json(data, "C_DH");
             remove_json(data, "Nonce");
-            remove_json(data, "Message");
+            
+            //aggiorno la fase
+            data["Fase"] = 4;
+            
+            //aggiungo il timestamp
             add_json(data, "Timestamp", get_current_timestamp());
-            std::cout << "Sono nel protocollo:" << data.dump(4) << std::endl;
-            return bytesToHex(shared_secret);
-            //std::cout << data.dump(4) << std::endl;
+            std::cout << "Il segreto condiviso è: " << bytesToHex(server.shared_key);
+            
+            //converto in stringa la struttura json
+            server.message = json_to_string(data);
+            
+            //cripto il messaggio
+            server.crypt_m = encrypt_private_key_RSA_block(server.message, "Server_private_key.pem");
+
+            //preparo il server per aspetta i pacchetti crittografati con il segreto condiviso.
+            data["Fase"] = 5;
             break;
         case 4:
             std::cout << "Fase 4" << std::endl;
@@ -161,7 +180,6 @@ std::string protocol(json& data, int&& fase, std::string mynonce){
             std::cout << "Invalid phase" << std::endl;
             break;
     }
-    return "0";
 }
 
 int main(int argc, char**argv)
@@ -199,11 +217,12 @@ int main(int argc, char**argv)
         if (fork() == 0)
         {
             close(sockfd);
-            std::string mynonce;
+            protocollo server;
+            json data;
             for(;;)
             {
-                //ricevo il messaggio dal client
-                std::cout << "Aspetto il client" << std::endl;
+                //ricevo il messaggio dal client per la prima volta
+                std::cout << "Aspetto il client la prima volta" << std::endl;
                 n = recv(newsockfd,recvline,999,0);
                 if(n==0)
                 {
@@ -216,32 +235,75 @@ int main(int argc, char**argv)
                 std::string json_str(recvline, n);
 
                 // Conversione della stringa JSON in un oggetto JSON
-                json data = string_to_json(json_str);
+                data = string_to_json(json_str);
 
                 std::cout << "Dati dentro il json (server)" << data.dump(4) << std::endl;
                 
-                //chiamo il protocollo
-                mynonce = protocol(data, (int)data["Fase"], mynonce);
-                // prima di mandare definitivamente il pacchetto mi salvo la nonce
-                std::cout << "Contenuto my nonce, sono nella fase:" << data["Fase"] << " " <<mynonce <<std::endl;
-                //converto il json in una stringa
-                json_str = json_to_string(data);
-                // mando la stringa al client
-                send(newsockfd, json_str.c_str(), json_str.length(),0);
-                std::cout << "ciaone " << std::endl;
+                // questa chiamata serve per la prima fase
+                protocol(data, server);
 
-                // Visualizzazione dei dati ricevuti
-                // std::cout << "Fase: " << data["Fase"] << std::endl;
+                send(newsockfd, server.crypt_m.c_str(), server.crypt_m.length(),0);
                 
-                /*if (received_data["Username"] == "suca"){
-                    cout << "ci siamo" << endl;
-                    data["Fase"] = 2;
-                    remove_json(data, "Username");
-                    add_json(data, "nonce", generateNonce());
-                    string prova = data.dump();
-                    send(newsockfd,sendline,999,0);
-                }*/
-                    // break;
+                std::cout << "Sono a prima di entrare nel secondo ciclo per le fasi successive" << std::endl;
+                
+                for(;;){
+
+                    std::cout << "Aspetto il client seconda volta" << std::endl;
+                    n = recv(newsockfd,recvline,999,0);
+                    if(n==0)
+                    {
+                        std::cout << "errore nella comunicazione" << std::endl;
+                        return 0;    
+                    }
+                    recvline[n] = 0;
+
+                    //metto il dato criptato dentro crypt_m
+                    server.crypt_m = std::string(recvline, n);
+
+                    //std::cout << "vediamo il messaggio criptato" << server.crypt_m << std::endl;
+                    //decripto il dato e lo metto in decrypt_m
+                    server.decrypt_m = decrypt_public_key_RSA_block(server.crypt_m, get_key_path_public(server.nome).c_str());
+
+                    //metto tutto dentro il nostro data json
+                    data = string_to_json(server.decrypt_m);
+
+                    std::cout << "vediamo il messaggio decriptato" << data.dump(4) << std::endl;
+                    //chiamo il protocollo
+                    protocol(data, server);
+
+                    //converto il json in una stringa
+                    //json_str = json_to_string(data);
+
+                    // mando la stringa al client
+                    send(newsockfd, server.crypt_m.c_str(), server.crypt_m.length(),0);
+
+                    //entriamo nella fase in cui il segreto è stato condiviso e si 
+                    if(data["Fase"] == 5){
+                        for(;;){
+
+                            std::cout << "Aspetto il client per la comunicazione tramite segreto condiviso" << std::endl;
+                            n = recv(newsockfd,recvline,999,0);
+                            if(n==0)
+                            {
+                                std::cout << "errore nella comunicazione" << std::endl;
+                                return 0;    
+                            }
+                            recvline[n] = 0;
+                        }
+                    }
+                    // Visualizzazione dei dati ricevuti
+                    // std::cout << "Fase: " << data["Fase"] << std::endl;
+                    
+                    /*if (received_data["Username"] == "suca"){
+                        cout << "ci siamo" << endl;
+                        data["Fase"] = 2;
+                        remove_json(data, "Username");
+                        add_json(data, "nonce", generateNonce());
+                        string prova = data.dump();
+                        send(newsockfd,sendline,999,0);
+                    }*/
+                        // break;
+                    }
             } 
             return 0; 
         }else{
