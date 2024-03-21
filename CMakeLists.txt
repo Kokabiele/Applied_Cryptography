@@ -6,7 +6,7 @@ enable_testing()
 
 add_executable(Client_2 Client.cpp Utility.cpp Utility.hpp)#aggiungere a manina i file .cpp qui
 add_executable(Server Server.cpp Utility.cpp Utility.hpp)
-add_executable(User_account User_account.cpp)
+add_executable(User_account User_account.cpp Utility.cpp Utility.hpp)
 add_executable(Tester tester.cpp)
 
 

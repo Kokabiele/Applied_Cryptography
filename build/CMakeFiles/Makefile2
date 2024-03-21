@@ -912,12 +912,12 @@ CMakeFiles/Server.dir/clean:
 CMakeFiles/User_account.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/user/mio_progetto_crittogragia/build/CMakeFiles --progress-num=9,10 "Built target User_account"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/user/mio_progetto_crittogragia/build/CMakeFiles --progress-num=9,10,11 "Built target User_account"
 .PHONY : CMakeFiles/User_account.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/User_account.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/mio_progetto_crittogragia/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/mio_progetto_crittogragia/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/User_account.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/mio_progetto_crittogragia/build/CMakeFiles 0
 .PHONY : CMakeFiles/User_account.dir/rule

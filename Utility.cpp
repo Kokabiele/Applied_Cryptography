@@ -13,6 +13,15 @@
 #include <fstream>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <nlohmann/json.hpp>
+using namespace nlohmann;
+
+void clear_shared_key(std::vector<unsigned char>& shared_key) {
+    // Utilizza OPENSSL_cleanse per sovrascrivere la chiave con zeri
+    OPENSSL_cleanse(shared_key.data(), shared_key.size());
+    // Poi svuota il vettore
+    shared_key.clear();
+}
 
 //test per criptazioni con segreto condiviso
 void handleErrors() {
@@ -135,14 +144,6 @@ std::string decrypt_AES_GCM(const std::vector<unsigned char>& key, const std::st
     return std::string(reinterpret_cast<char*>(plaintext), plaintext_len);
 }
 
-
-
-
-
-
-
-
-
 //crypt e decrypt a blocchi.
 std::string encrypt_private_key_RSA_block(const std::string& message, const char* private_key_path) {
     RSA* rsa_privkey = nullptr;
@@ -247,6 +248,7 @@ std::string decrypt_public_key_RSA_block(const std::string& encrypted_message, c
     rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
     fclose(fp);
 
+    //std::cout << "path chiave pubblica: " << public_key_path << std::endl;
     if (!rsa_pubkey) {
         std::cerr << "Errore durante la lettura della chiave pubblica RSA." << std::endl;
         return "";
@@ -254,7 +256,7 @@ std::string decrypt_public_key_RSA_block(const std::string& encrypted_message, c
 
     // Ottieni la dimensione massima dei blocchi crittografici
     int max_length = RSA_size(rsa_pubkey);
-
+    std::cout << "lunghezza chiave RSA: " << max_length << std::endl;
     std::string decrypted_message;
 
     // Decripta i blocchi della stringa encrypted_message
@@ -287,106 +289,52 @@ std::string decrypt_public_key_RSA_block(const std::string& encrypted_message, c
     return decrypted_message;
 }
 
-// //encrypt with public key RSA
-// std::string encrypt_public_key_RSA(const std::string& message, const char *public_key_path) {
-//     // Determina la lunghezza massima del messaggio criptato
-//     RSA* rsa_pubkey = nullptr;
-//     FILE* fp = fopen(public_key_path, "r");
-//     rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
-//     fclose(fp);
-//     int max_length = RSA_size(rsa_pubkey);
-//     std::string encrypted_message(max_length, '\0');
-//     //std::cout << message << std::endl;
-//     // Cripta il messaggio con la chiave pubblica
-//     int encrypted_length = RSA_public_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.data()), reinterpret_cast<unsigned char*>(const_cast<char*>(encrypted_message.data())), rsa_pubkey, RSA_PKCS1_PADDING);
-//     if (encrypted_length == -1) {
-//         std::cerr << "Errore durante la criptazione." << std::endl;
-//         return "";
-//     }
+std::string encrypt_public_key_RSA_block(const std::string& message, const char* public_key_path) {
+    RSA* rsa_pubkey = nullptr;
+    FILE* fp = fopen(public_key_path, "r");
+    rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
+    fclose(fp);
 
-//     // Ridimensiona il messaggio criptato in base alla lunghezza effettiva
-//     encrypted_message.resize(encrypted_length);
+    if (!rsa_pubkey) {
+        std::cerr << "Errore durante la lettura della chiave pubblica RSA." << std::endl;
+        return "";
+    }
 
-//     return encrypted_message;
-// }
+    // Ottieni la dimensione massima dei blocchi crittografici
+    int max_length = RSA_size(rsa_pubkey);
 
-// //encrypt with private key RSA
-// std::string encrypt_private_key_RSA(const std::string& message, const char* private_key_path) {
-//     RSA* rsa_privkey = nullptr;
-//     FILE* fp = fopen(private_key_path, "r");
-//     rsa_privkey = PEM_read_RSAPrivateKey(fp, nullptr, nullptr, nullptr);
-//     fclose(fp);
+    std::string encrypted_message;
 
-//     int max_length = RSA_size(rsa_privkey);
-//     unsigned char* encrypted_message = new unsigned char[max_length];
-//     int encrypted_length = RSA_private_encrypt(message.size(), reinterpret_cast<const unsigned char*>(message.data()),
-//                                                encrypted_message, rsa_privkey, RSA_PKCS1_PADDING);
+    // Cripta il messaggio a blocchi
+    int offset = 0;
+    while (offset < message.size()) {
+        // Cripta il blocco corrente del messaggio
+        unsigned char* encrypted_block = new unsigned char[max_length];
+        int encrypted_length = RSA_public_encrypt(std::min(max_length, static_cast<int>(message.size() - offset)),
+                                                  reinterpret_cast<const unsigned char*>(message.data() + offset),
+                                                  encrypted_block, rsa_pubkey, RSA_PKCS1_PADDING);
+        if (encrypted_length == -1) {
+            std::cerr << "Errore durante la criptazione del blocco." << std::endl;
+            RSA_free(rsa_pubkey);
+            delete[] encrypted_block;
+            return "";
+        }
 
-//     if (encrypted_length == -1) {
-//         std::cerr << "Errore durante la criptazione del messaggio con la chiave privata RSA." << std::endl;
-//         RSA_free(rsa_privkey);
-//         delete[] encrypted_message;
-//         return "";
-//     }
+        // Aggiungi il blocco criptato al messaggio criptato completo
+        encrypted_message.append(reinterpret_cast<char*>(encrypted_block), encrypted_length);
 
-//     std::string encrypted_message_str(reinterpret_cast<char*>(encrypted_message), encrypted_length);
+        // Dealloca la memoria del blocco criptato
+        delete[] encrypted_block;
 
-//     RSA_free(rsa_privkey);
-//     delete[] encrypted_message;
+        // Passa al prossimo blocco
+        offset += max_length;
+    }
 
-//     return encrypted_message_str;
-// }
+    // Libera la memoria della chiave RSA
+    RSA_free(rsa_pubkey);
 
-// //decrypt with public key RSA
-// std::string decrypt_public_key_RSA(const std::string& encrypted_message, const char* public_key_path) {
-//     RSA* rsa_pubkey = nullptr;
-//     FILE* fp = fopen(public_key_path, "r");
-//     rsa_pubkey = PEM_read_RSA_PUBKEY(fp, nullptr, nullptr, nullptr);
-//     fclose(fp);
-
-//     int max_length = RSA_size(rsa_pubkey);
-//     unsigned char* decrypted_message = new unsigned char[max_length];
-
-//     int decrypted_length = RSA_public_decrypt(encrypted_message.size(), reinterpret_cast<const unsigned char*>(encrypted_message.data()),
-//                                               decrypted_message, rsa_pubkey, RSA_PKCS1_PADDING);
-
-//     if (decrypted_length == -1) {
-//         std::cerr << "Errore durante la decriptazione del messaggio con la chiave pubblica RSA." << std::endl;
-//         RSA_free(rsa_pubkey);
-//         delete[] decrypted_message;
-//         return "";
-//     }
-
-//     std::string decrypted_message_str(reinterpret_cast<char*>(decrypted_message), decrypted_length);
-
-//     RSA_free(rsa_pubkey);
-//     delete[] decrypted_message;
-
-//     return decrypted_message_str;
-// }
-
-// //decrypt with private key RSA
-// std::string decrypt_private_key_RSA(const std::string& encrypted_message, const char *private_key_path) {
-//     // Determina la lunghezza massima del messaggio decriptato
-//     RSA* rsa_privkey = nullptr;
-//     FILE* fp = fopen(private_key_path, "r");
-//     rsa_privkey = PEM_read_RSAPrivateKey(fp, nullptr, nullptr, nullptr);
-//     fclose(fp);
-//     int max_length = RSA_size(rsa_privkey);
-//     std::string decrypted_message(max_length, '\0');
-
-//     // Decripta il messaggio
-//     int decrypted_length = RSA_private_decrypt(encrypted_message.size(), reinterpret_cast<const unsigned char*>(encrypted_message.data()), reinterpret_cast<unsigned char*>(const_cast<char*>(decrypted_message.data())), rsa_privkey, RSA_PKCS1_PADDING);
-//     if (decrypted_length == -1) {
-//         std::cerr << "Errore durante la decriptazione." << std::endl;
-//         return "";
-//     }
-
-//     // Ridimensiona il messaggio decriptato in base alla lunghezza effettiva
-//     decrypted_message.resize(decrypted_length);
-
-//     return decrypted_message;
-// }
+    return encrypted_message;
+}
 
 std::string bytesToHex(const std::vector<unsigned char>& bytes) {
     std::stringstream stream;
@@ -407,9 +355,8 @@ std::vector<unsigned char> hexToBytes(const std::string& hex) {
     return bytes;
 }
 
-
 //Hashing with SHA-256
-std::string sha256(const std::string& input) {
+std::string sha256(std::string& input) {
     
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
@@ -451,7 +398,7 @@ std::string get_current_timestamp(){
     std::string unix_time_str = std::to_string(unix_time);
 
     // Stampa il tempo Unix come stringa
-    std::cout << "Tempo Unix come stringa: " << unix_time_str << std::endl;
+    //std::cout << "Tempo Unix come stringa: " << unix_time_str << std::endl;
 
     return unix_time_str;
 
@@ -632,9 +579,6 @@ std::vector<unsigned char> computeSharedSecret(const BIGNUM* pub_key_peer, DH* d
 
     // Ridimensiona il vettore al numero di byte effettivamente calcolati
     shared_secret.resize(computed_len);
-    std::cout << "Lunghezza chiave sistemata: " << computed_len << std::endl;
-    std::cout << "Lunghezza chiave come doveva essere: " << shared_secret_len << std::endl;
-    std::cout << "questa è la chiave" << bytesToHex(shared_secret).size() << std::endl;
     return shared_secret;
 }
 
@@ -649,4 +593,20 @@ std::string get_key_path_private(std::string nome_utente){
 std::string get_key_path_public(std::string nome_utente){
     std::string risultato = nome_utente.append("_public_key.pem");
     return risultato;
+}
+
+//aggiunge il campo che voglio
+void add_json (json& data, std::string key, std::string new_value){
+    data[key] = new_value;
+    //std::cout <<data.dump(4) << std::endl;
+}
+//rimuove campo che trova
+void remove_json (json& data, std::string key){
+    data.erase(data.find(key));
+}
+std::string json_to_string (const json& data){
+    return data.dump();
+}
+json string_to_json(std::string stringa){
+    return json::parse(stringa);
 }
