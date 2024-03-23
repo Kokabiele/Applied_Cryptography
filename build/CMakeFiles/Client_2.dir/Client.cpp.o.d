@@ -166,6 +166,10 @@ CMakeFiles/Client_2.dir/Client.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
+ /usr/include/c++/10/fstream /usr/include/c++/10/bits/codecvt.h \
+ /usr/include/x86_64-linux-gnu/c++/10/bits/basic_file.h \
+ /usr/include/x86_64-linux-gnu/c++/10/bits/c++io.h \
+ /usr/include/c++/10/bits/fstream.tcc \
  /home/user/mio_progetto_crittogragia/Utility.hpp \
  /usr/include/openssl/bn.h /usr/include/openssl/e_os2.h \
  /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
@@ -289,12 +293,26 @@ CMakeFiles/Client_2.dir/Client.cpp.o: \
  /usr/include/c++/10/bits/locale_facets_nonio.h /usr/include/c++/10/ctime \
  /usr/include/x86_64-linux-gnu/c++/10/bits/time_members.h \
  /usr/include/x86_64-linux-gnu/c++/10/bits/messages_members.h \
- /usr/include/libintl.h /usr/include/c++/10/bits/codecvt.h \
- /usr/include/c++/10/bits/locale_facets_nonio.tcc \
+ /usr/include/libintl.h /usr/include/c++/10/bits/locale_facets_nonio.tcc \
  /usr/include/c++/10/bits/locale_conv.h \
  /usr/include/c++/10/bits/quoted_string.h /usr/include/c++/10/sstream \
  /usr/include/c++/10/bits/sstream.tcc \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/detail/conversions/to_chars.hpp \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/ordered_map.hpp \
  /home/user/mio_progetto_crittogragia/json/include/nlohmann/detail/macro_unscope.hpp \
- /home/user/mio_progetto_crittogragia/json/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
+ /home/user/mio_progetto_crittogragia/json/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ /usr/include/c++/10/regex /usr/include/c++/10/bitset \
+ /usr/include/c++/10/stack /usr/include/c++/10/deque \
+ /usr/include/c++/10/bits/stl_deque.h /usr/include/c++/10/bits/deque.tcc \
+ /usr/include/c++/10/bits/stl_stack.h \
+ /usr/include/c++/10/bits/regex_constants.h \
+ /usr/include/c++/10/bits/regex_error.h \
+ /usr/include/c++/10/bits/regex_automaton.h \
+ /usr/include/c++/10/bits/regex_automaton.tcc \
+ /usr/include/c++/10/bits/regex_scanner.h \
+ /usr/include/c++/10/bits/regex_scanner.tcc \
+ /usr/include/c++/10/bits/regex_compiler.h \
+ /usr/include/c++/10/bits/regex_compiler.tcc \
+ /usr/include/c++/10/bits/regex.h /usr/include/c++/10/bits/regex.tcc \
+ /usr/include/c++/10/bits/regex_executor.h \
+ /usr/include/c++/10/bits/regex_executor.tcc

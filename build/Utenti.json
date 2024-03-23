@@ -10,4 +10,16 @@
     "salt": "077d36d204ad44142fecb2508390ad83",
     "username": "Rachele"
 }
+,
+{
+    "password": "6b21008638c52571a37ff768c5e0d5a40980cc108fbe8c0e7d0725184ee8f5ed09c46fe4f771c64144618b9161927f83a2d5a41fe1d46a094973345e5ebd8f90",
+    "salt": "a0736cffd496ed2598afda97ea19e81e",
+    "username": "lazza"
+}
+,
+{
+    "password": "580488c9857834a22600e868274178d298a8d771a04cd4c3db9cc555ab252a6c5a826beede784fc51975f3ad39cedef0320b5c3f66fa237faa3eab3ede480f6d",
+    "salt": "2155968502c0b95174529eeee5284313",
+    "username": "salmo"
+}
 ]

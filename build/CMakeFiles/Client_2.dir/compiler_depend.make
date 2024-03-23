@@ -207,6 +207,11 @@ CMakeFiles/Client_2.dir/Client.cpp.o: ../Client.cpp \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
+  /usr/include/c++/10/fstream \
+  /usr/include/c++/10/bits/codecvt.h \
+  /usr/include/x86_64-linux-gnu/c++/10/bits/basic_file.h \
+  /usr/include/x86_64-linux-gnu/c++/10/bits/c++io.h \
+  /usr/include/c++/10/bits/fstream.tcc \
   ../Utility.hpp \
   /usr/include/openssl/bn.h \
   /usr/include/openssl/e_os2.h \
@@ -358,7 +363,6 @@ CMakeFiles/Client_2.dir/Client.cpp.o: ../Client.cpp \
   /usr/include/x86_64-linux-gnu/c++/10/bits/time_members.h \
   /usr/include/x86_64-linux-gnu/c++/10/bits/messages_members.h \
   /usr/include/libintl.h \
-  /usr/include/c++/10/bits/codecvt.h \
   /usr/include/c++/10/bits/locale_facets_nonio.tcc \
   /usr/include/c++/10/bits/locale_conv.h \
   /usr/include/c++/10/bits/quoted_string.h \
@@ -367,7 +371,26 @@ CMakeFiles/Client_2.dir/Client.cpp.o: ../Client.cpp \
   ../json/include/nlohmann/detail/conversions/to_chars.hpp \
   ../json/include/nlohmann/ordered_map.hpp \
   ../json/include/nlohmann/detail/macro_unscope.hpp \
-  ../json/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
+  ../json/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /usr/include/c++/10/regex \
+  /usr/include/c++/10/bitset \
+  /usr/include/c++/10/stack \
+  /usr/include/c++/10/deque \
+  /usr/include/c++/10/bits/stl_deque.h \
+  /usr/include/c++/10/bits/deque.tcc \
+  /usr/include/c++/10/bits/stl_stack.h \
+  /usr/include/c++/10/bits/regex_constants.h \
+  /usr/include/c++/10/bits/regex_error.h \
+  /usr/include/c++/10/bits/regex_automaton.h \
+  /usr/include/c++/10/bits/regex_automaton.tcc \
+  /usr/include/c++/10/bits/regex_scanner.h \
+  /usr/include/c++/10/bits/regex_scanner.tcc \
+  /usr/include/c++/10/bits/regex_compiler.h \
+  /usr/include/c++/10/bits/regex_compiler.tcc \
+  /usr/include/c++/10/bits/regex.h \
+  /usr/include/c++/10/bits/regex.tcc \
+  /usr/include/c++/10/bits/regex_executor.h \
+  /usr/include/c++/10/bits/regex_executor.tcc
 
 CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
   /usr/include/stdc-predef.h \
@@ -756,13 +779,33 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/openssl/pem.h:
 
-/usr/include/openssl/rsaerr.h:
-
 /usr/include/openssl/rsa.h:
 
 /usr/include/c++/10/bits/parse_numbers.h:
 
 /usr/include/c++/10/ratio:
+
+/usr/include/c++/10/bits/regex_executor.tcc:
+
+/usr/include/c++/10/bits/regex_executor.h:
+
+/usr/include/c++/10/bits/regex.tcc:
+
+/usr/include/c++/10/bits/regex_compiler.h:
+
+/usr/include/openssl/rsaerr.h:
+
+/usr/include/c++/10/bits/regex_automaton.h:
+
+/usr/include/c++/10/bits/regex_error.h:
+
+/usr/include/c++/10/bits/regex_constants.h:
+
+/usr/include/c++/10/bits/deque.tcc:
+
+/usr/include/c++/10/bits/stl_deque.h:
+
+/usr/include/c++/10/stack:
 
 ../json/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
 
@@ -812,15 +855,13 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 ../json/include/nlohmann/detail/meta/std_fs.hpp:
 
+/usr/include/c++/10/deque:
+
 ../json/include/nlohmann/detail/meta/identity_tag.hpp:
 
 ../json/include/nlohmann/detail/meta/call_std/begin.hpp:
 
 ../json/include/nlohmann/detail/iterators/iterator_traits.hpp:
-
-/usr/include/c++/10/fstream:
-
-../json/include/nlohmann/detail/meta/type_traits.hpp:
 
 ../json/include/nlohmann/detail/meta/cpp_future.hpp:
 
@@ -882,6 +923,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/openssl/lhash.h:
 
+/usr/include/c++/10/bits/regex_scanner.tcc:
+
 /usr/include/c++/10/bits/erase_if.h:
 
 /usr/include/c++/10/bits/stl_map.h:
@@ -934,6 +977,12 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/c++/10/bits/stream_iterator.h:
 
+../Utility.cpp:
+
+/usr/include/c++/10/bits/invoke.h:
+
+/usr/include/c++/10/bits/uses_allocator.h:
+
 /usr/include/c++/10/cstdlib:
 
 /usr/include/openssl/randerr.h:
@@ -964,9 +1013,17 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
+/usr/include/c++/10/bits/std_function.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
+
+/usr/include/c++/10/bits/locale_classes.h:
+
 /usr/include/x86_64-linux-gnu/c++/10/bits/atomic_word.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
+
+/usr/include/c++/10/bits/regex.h:
 
 /usr/include/c++/10/bits/hashtable_policy.h:
 
@@ -999,10 +1056,6 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/openssl/buffererr.h:
 
 /usr/include/time.h:
-
-/usr/include/x86_64-linux-gnu/c++/10/bits/c++io.h:
-
-/usr/include/x86_64-linux-gnu/bits/errno.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
 
@@ -1130,10 +1183,6 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/c++/10/ostream:
 
-/usr/include/c++/10/bits/codecvt.h:
-
-/usr/include/x86_64-linux-gnu/c++/10/bits/cpu_defines.h:
-
 ../json/include/nlohmann/detail/iterators/iteration_proxy.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
@@ -1254,6 +1303,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
+/usr/include/c++/10/regex:
+
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
 /usr/include/c++/10/backward/binders.h:
@@ -1265,6 +1316,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/features.h:
 
 /usr/include/c++/10/bits/basic_string.h:
+
+/usr/include/c++/10/bits/stl_stack.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
 
@@ -1282,9 +1335,9 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/c++/10/bits/exception.h:
 
-/usr/include/c++/10/ext/new_allocator.h:
-
 /usr/include/c++/10/iterator:
+
+/usr/include/c++/10/ext/new_allocator.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/10/include/stdarg.h:
 
@@ -1301,6 +1354,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
+
+/usr/include/c++/10/bitset:
 
 /usr/include/c++/10/bits/exception_ptr.h:
 
@@ -1329,10 +1384,6 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/c++/10/type_traits:
 
 /usr/include/c++/10/cwctype:
-
-../Utility.cpp:
-
-/usr/include/c++/10/bits/invoke.h:
 
 /usr/include/c++/10/bits/cpp_type_traits.h:
 
@@ -1376,15 +1427,9 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
-/usr/include/x86_64-linux-gnu/c++/10/bits/basic_file.h:
-
-/usr/include/openssl/ecerr.h:
-
-/usr/include/pthread.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
-
 /usr/include/errno.h:
+
+/usr/include/c++/10/bits/regex_automaton.tcc:
 
 /usr/include/asm-generic/errno.h:
 
@@ -1397,6 +1442,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/c++/10/bits/functional_hash.h:
 
 /usr/include/c++/10/array:
+
+/usr/include/c++/10/bits/regex_scanner.h:
 
 /usr/include/c++/10/bits/basic_string.tcc:
 
@@ -1421,6 +1468,10 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/c++/10/streambuf:
 
 /usr/include/c++/10/bits/streambuf_iterator.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/x86_64-linux-gnu/c++/10/bits/c++io.h:
 
 /usr/include/c++/10/ext/alloc_traits.h:
 
@@ -1480,6 +1531,8 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/unistd.h:
 
+/usr/include/c++/10/bits/regex_compiler.tcc:
+
 /usr/include/c++/10/stdlib.h:
 
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
@@ -1487,6 +1540,24 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/10/include/limits.h:
+
+../json/include/nlohmann/detail/meta/type_traits.hpp:
+
+/usr/include/c++/10/fstream:
+
+/usr/include/x86_64-linux-gnu/c++/10/bits/cpu_defines.h:
+
+/usr/include/c++/10/bits/codecvt.h:
+
+/usr/include/openssl/ecerr.h:
+
+/usr/include/pthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+/usr/include/x86_64-linux-gnu/c++/10/bits/basic_file.h:
+
+/usr/include/c++/10/bits/stl_bvector.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/10/include/syslimits.h:
 
@@ -1510,8 +1581,6 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 
 /usr/include/c++/10/vector:
 
-/usr/include/c++/10/bits/stl_bvector.h:
-
 /usr/include/c++/10/bits/vector.tcc:
 
 /usr/include/c++/10/version:
@@ -1533,11 +1602,3 @@ CMakeFiles/Client_2.dir/Utility.cpp.o: ../Utility.cpp \
 /usr/include/c++/10/system_error:
 
 /usr/include/c++/10/tuple:
-
-/usr/include/c++/10/bits/uses_allocator.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
-
-/usr/include/c++/10/bits/locale_classes.h:
-
-/usr/include/c++/10/bits/std_function.h:
