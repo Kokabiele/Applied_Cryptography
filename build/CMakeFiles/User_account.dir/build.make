@@ -70,18 +70,18 @@ include CMakeFiles/User_account.dir/progress.make
 include CMakeFiles/User_account.dir/flags.make
 
 CMakeFiles/User_account.dir/User_account.cpp.o: CMakeFiles/User_account.dir/flags.make
-CMakeFiles/User_account.dir/User_account.cpp.o: User_account.cpp
+CMakeFiles/User_account.dir/User_account.cpp.o: ../User_account.cpp
 CMakeFiles/User_account.dir/User_account.cpp.o: CMakeFiles/User_account.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/mio_progetto_crittogragia/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/User_account.dir/User_account.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/User_account.dir/User_account.cpp.o -MF CMakeFiles/User_account.dir/User_account.cpp.o.d -o CMakeFiles/User_account.dir/User_account.cpp.o -c /home/user/mio_progetto_crittogragia/User_account.cpp
 
 CMakeFiles/User_account.dir/User_account.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/User_account.dir/User_account.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/user/mio_progetto_crittogragia/build/User_account.cpp > CMakeFiles/User_account.dir/User_account.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/user/mio_progetto_crittogragia/User_account.cpp > CMakeFiles/User_account.dir/User_account.cpp.i
 
 CMakeFiles/User_account.dir/User_account.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/User_account.dir/User_account.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/user/mio_progetto_crittogragia/build/User_account.cpp -o CMakeFiles/User_account.dir/User_account.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/user/mio_progetto_crittogragia/User_account.cpp -o CMakeFiles/User_account.dir/User_account.cpp.s
 
 CMakeFiles/User_account.dir/Utility.cpp.o: CMakeFiles/User_account.dir/flags.make
 CMakeFiles/User_account.dir/Utility.cpp.o: ../Utility.cpp

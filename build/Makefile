@@ -511,17 +511,17 @@ ContinuousSubmit/fast:
 .PHONY : ContinuousSubmit/fast
 
 #=============================================================================
-# Target rules for targets named Client_2
+# Target rules for targets named Client
 
 # Build rule for target.
-Client_2: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Client_2
-.PHONY : Client_2
+Client: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Client
+.PHONY : Client
 
 # fast build rule for target.
-Client_2/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/build
-.PHONY : Client_2/fast
+Client/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/build
+.PHONY : Client/fast
 
 #=============================================================================
 # Target rules for targets named Server
@@ -549,25 +549,12 @@ User_account/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/build
 .PHONY : User_account/fast
 
-#=============================================================================
-# Target rules for targets named Tester
-
-# Build rule for target.
-Tester: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Tester
-.PHONY : Tester
-
-# fast build rule for target.
-Tester/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Tester.dir/build.make CMakeFiles/Tester.dir/build
-.PHONY : Tester/fast
-
 Client.o: Client.cpp.o
 .PHONY : Client.o
 
 # target to build an object file
 Client.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Client.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Client.cpp.o
 .PHONY : Client.cpp.o
 
 Client.i: Client.cpp.i
@@ -575,7 +562,7 @@ Client.i: Client.cpp.i
 
 # target to preprocess a source file
 Client.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Client.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Client.cpp.i
 .PHONY : Client.cpp.i
 
 Client.s: Client.cpp.s
@@ -583,7 +570,7 @@ Client.s: Client.cpp.s
 
 # target to generate assembly for a file
 Client.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Client.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Client.cpp.s
 .PHONY : Client.cpp.s
 
 Server.o: Server.cpp.o
@@ -639,7 +626,7 @@ Utility.o: Utility.cpp.o
 
 # target to build an object file
 Utility.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Utility.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Utility.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Server.dir/build.make CMakeFiles/Server.dir/Utility.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/Utility.cpp.o
 .PHONY : Utility.cpp.o
@@ -649,7 +636,7 @@ Utility.i: Utility.cpp.i
 
 # target to preprocess a source file
 Utility.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Utility.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Utility.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Server.dir/build.make CMakeFiles/Server.dir/Utility.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/Utility.cpp.i
 .PHONY : Utility.cpp.i
@@ -659,34 +646,10 @@ Utility.s: Utility.cpp.s
 
 # target to generate assembly for a file
 Utility.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client_2.dir/build.make CMakeFiles/Client_2.dir/Utility.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Client.dir/build.make CMakeFiles/Client.dir/Utility.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Server.dir/build.make CMakeFiles/Server.dir/Utility.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/User_account.dir/build.make CMakeFiles/User_account.dir/Utility.cpp.s
 .PHONY : Utility.cpp.s
-
-tester.o: tester.cpp.o
-.PHONY : tester.o
-
-# target to build an object file
-tester.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Tester.dir/build.make CMakeFiles/Tester.dir/tester.cpp.o
-.PHONY : tester.cpp.o
-
-tester.i: tester.cpp.i
-.PHONY : tester.i
-
-# target to preprocess a source file
-tester.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Tester.dir/build.make CMakeFiles/Tester.dir/tester.cpp.i
-.PHONY : tester.cpp.i
-
-tester.s: tester.cpp.s
-.PHONY : tester.s
-
-# target to generate assembly for a file
-tester.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Tester.dir/build.make CMakeFiles/Tester.dir/tester.cpp.s
-.PHONY : tester.cpp.s
 
 # Help Target
 help:
@@ -727,9 +690,8 @@ help:
 	@echo "... NightlySubmit"
 	@echo "... NightlyTest"
 	@echo "... NightlyUpdate"
-	@echo "... Client_2"
+	@echo "... Client"
 	@echo "... Server"
-	@echo "... Tester"
 	@echo "... User_account"
 	@echo "... Client.o"
 	@echo "... Client.i"
@@ -743,9 +705,6 @@ help:
 	@echo "... Utility.o"
 	@echo "... Utility.i"
 	@echo "... Utility.s"
-	@echo "... tester.o"
-	@echo "... tester.i"
-	@echo "... tester.s"
 .PHONY : help
 
 

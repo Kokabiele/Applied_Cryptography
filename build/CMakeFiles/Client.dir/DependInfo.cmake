@@ -8,8 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/user/mio_progetto_crittogragia/User_account.cpp" "CMakeFiles/User_account.dir/User_account.cpp.o" "gcc" "CMakeFiles/User_account.dir/User_account.cpp.o.d"
-  "/home/user/mio_progetto_crittogragia/Utility.cpp" "CMakeFiles/User_account.dir/Utility.cpp.o" "gcc" "CMakeFiles/User_account.dir/Utility.cpp.o.d"
+  "/home/user/mio_progetto_crittogragia/Client.cpp" "CMakeFiles/Client.dir/Client.cpp.o" "gcc" "CMakeFiles/Client.dir/Client.cpp.o.d"
+  "/home/user/mio_progetto_crittogragia/Utility.cpp" "CMakeFiles/Client.dir/Utility.cpp.o" "gcc" "CMakeFiles/Client.dir/Utility.cpp.o.d"
   )
 
 # Targets to which this target links.

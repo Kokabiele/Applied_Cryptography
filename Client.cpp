@@ -9,8 +9,10 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fstream>
 #include "Utility.hpp"
 #include <nlohmann/json.hpp>
+#include <regex>
 
 using namespace nlohmann;
 
@@ -18,7 +20,6 @@ using namespace nlohmann;
 
 struct protocollo{
     std::string nome;//OK
-    std::string S_nonce;//OK
     std::string C_nonce;//OK
     std::vector<unsigned char> shared_key;//OK
     const BIGNUM* Public_key_DH;//OK
@@ -27,19 +28,161 @@ struct protocollo{
     std::string crypt_m;
     std::string decrypt_m;
     std::string password;
+    int action = 5;
     int fase = 1;
 
 };
 
+std::string inserimento_nome_utente(){
+    std::string nome_utente;
+    bool ok = true;
+    do{
+        std::cout << "Inserire il nome utente" << std::endl;
+        std::cin >> nome_utente;
+        bool contains_non_alpha = !std::regex_match(nome_utente, std::regex("^[A-Za-z]+$"));
+        if(!contains_non_alpha){
+            ok = false;
+        }else{
+            std::cout << "Nome utente non valido." << std::endl;
+        }
+    }while(ok);
+    return nome_utente;
+}
+
+std::string inseriment_password(){
+    std::string password;
+    bool ok = true;
+    do{
+        std::cout << "Inserire la password" << std::endl;
+        std::cin >> password;
+        if(password.size() < 16){
+            ok = false;
+        }else{
+            std::cout << "Password non valida" << std::endl;
+        }
+    }while(ok);
+    return password;
+}
+
+void clear_protocollo(protocollo& data) {
+    // Pulisce le stringhe
+    data.nome.clear();
+    data.C_nonce.clear();
+    data.message.clear();
+    data.crypt_m.clear();
+    data.decrypt_m.clear();
+    data.password.clear();
+
+    // Pulisce il vettore di byte
+    OPENSSL_cleanse(data.shared_key.data(), data.shared_key.size());
+    data.shared_key.clear();
+
+    
+    // Pulisce i puntatori
+    data.Public_key_DH = nullptr;
+
+    // Se C_parameter non è nullptr, dealloca la memoria e imposta il puntatore a nullptr
+    if (data.C_parameter != nullptr) {
+        DH_free(data.C_parameter);
+        data.C_parameter = nullptr;
+    }
+
+}
+
+int generate_menu(json& data){
+    int input = 5;
+    std::string other_username = "";
+    std::string amount;
+    bool ok = true;
+    do{
+        std::cout << "Menu:" << std::endl;
+        std::cout << "Inserire un valore compreso tra 1 e 4 per eseguire le seguenti azioni: " << std::endl << std::flush;
+        std::cout << "1) Balance" << std::endl;
+        std::cout << "2) Transfer" << std::endl;
+        std::cout << "3) History" << std::endl;
+        std::cout << "4) Logout" << std::endl;
+
+        std::cin >> input;
+        if (std::cin.fail()) {
+            std::cerr << "Input non supportato" << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+
+        if (input < 1 || input > 4) {
+            std::cerr << "Azione non supportata" << std::endl;
+        }else{
+            switch (input){
+                case 1:
+                        return 1;
+                case 2:
+                        do{
+                            std::cout << "Inserire il nome dell'utente che riceverà il denaro" << std::endl;
+                            std::cin >> other_username;
+                            bool contains_non_alpha = !std::regex_match(other_username, std::regex("^[A-Za-z]+$"));
+                            if(!contains_non_alpha){
+                                ok = false;
+                            }else{
+                                std::cout << "Nome utente non valido." << std::endl;
+                            }
+                        }while(ok);
+                        add_json(data, "other_username", other_username);
+                        ok = true;
+                        do{
+                            std::cout << "Inserire la quantità di denaro che si vuole trasferire" << std::endl;
+                            std::cin >> amount;
+                            bool contains_non_alpha1 = !std::regex_match(amount, std::regex("^[0-9]+$"));
+                            if(!contains_non_alpha1){
+                                ok = false;
+                            }else{
+                                std::cout << "Quantià inserita non valida." << std::endl;
+                            }
+                        add_json(data, "amount", amount);   
+                        }while(ok);
+                        return 2;
+                case 3:
+                        return 3;
+                case 4:
+                        return 4;
+
+            }
+        }
+    }while(input < 1 || input > 4);
+    return input;
+}
+
+void check_history(const std::string username){
+    std::string nome_file = username + "_history.json";
+    std::ifstream file(nome_file);
+    if (!file.is_open()) {
+        std::cerr << "Impossibile aprire il file JSON." << std::endl;
+        exit(-1);
+    }
+    int j;
+    json jsonData;
+    file >> jsonData;
+    if(jsonData["history"].size() > 10){
+        j = 10;
+    }else{
+        j = jsonData["history"].size();
+    }
+    file.close();
+    for(int i = 0; i < j; i++){
+        std::cout << jsonData["history"][i].dump(4) << std::endl;
+    }
+}
+
 //fase 1 prende l'user all'inizio.
 //fase 2 ricevo "ok" e nonce
 void protocol(json& data, protocollo& client){
-    std::string hash_passw;
+    int input;
+    std::istringstream iss;
+    std::string line;
     switch (client.fase) {
         case 1:
 
             // mando il nome utente e una nonce Fase 1
-            std::cout << "Fase 1" << std::endl;
+            //std::cout << "Fase 1" << std::endl;
 
             //Salvo il nome utente
             client.nome=data["Username"];
@@ -54,18 +197,18 @@ void protocol(json& data, protocollo& client){
             client.message = json_to_string(data);
 
             //canc
-            std::cout << "nome utente ->" << client.nome << std::endl;
+            //std::cout << "nome utente ->" << client.nome << std::endl;
 
             //preparo il client per la fase succesiva
             client.fase = 2;
 
             //cripto il messaggio con la chiave pubblica del server
             client.crypt_m = encrypt_public_key_RSA_block(client.message, "Server_public_key.pem");
-            std::cout << "Qui ci arrivo" << std::endl;
+            //std::cout << "Qui ci arrivo" << std::endl;
             break;
         case 2:
             // sto ricevendo dal server "ok", la mia nonce +1 e la sua nonce, levo ok, metto Ya e S_nonce +1
-            std::cout << "Fase 2 -> 3" << std::endl;
+            //std::cout << "Fase 2 -> 3" << std::endl;
 
             //decripto il messaggio ottenuto dal server usando la sua chiave pubblica
             client.decrypt_m = decrypt_public_key_RSA_block(client.crypt_m, "Server_public_key.pem");
@@ -74,18 +217,24 @@ void protocol(json& data, protocollo& client){
             data = string_to_json(client.decrypt_m);
             //faccio il check della nonce del client che ritorna
             if(!check_nonce(client.C_nonce, data["C_nonce"])){
-                std::cout << "Nonce errata protocollo handshake fallito" << std::endl;
+                //std::cout << "Nonce errata protocollo handshake fallito" << std::endl;
                 exit(-1);
             }else{
-                std::cout << "Nonce salvata: " << client.C_nonce << std::endl;
-                std::cout << "Nonce ricevuta(client che torna): " << data["C_nonce"] << std::endl;
+                //std::cout << "Nonce salvata: " << client.C_nonce << std::endl;
+                //std::cout << "Nonce ricevuta(client che torna): " << data["C_nonce"] << std::endl;
             }
 
             //incremento la nonce del server [potrebbe essere aggiunto il controllo se la nonce del server appena ricevuta è già conosciuta o meno]
             data["S_nonce"] = incrementNonce(data["S_nonce"]);
             
             //rimuovo l'ok
-            remove_json(data, "Message");
+            if(data["Message"] == "ok"){
+                remove_json(data, "Message");
+            }else
+            {
+                std::cout << "Nome utente errato o non esistente" << std::endl;
+                exit(-1);
+            }
             
             //rimuovo la mia nonce appena controllata
             remove_json(data, "C_nonce");
@@ -116,18 +265,13 @@ void protocol(json& data, protocollo& client){
             // preparo il client per la fase successiva
             client.fase = 4;
             break;
-        case 3:
-            std::cout << "Fase 3" << std::endl;
-            //std::cout << data.dump(4) << std::endl;
-            exit(0);
-            break;
         case 4:
-            std::cout << "Fase 4" << std::endl;
+            //std::cout << "Fase 4" << std::endl;
 
             //decripto il messaggio ottenuto dal server
             client.decrypt_m = decrypt_public_key_RSA_block(client.crypt_m, "Server_public_key.pem");
 
-            //std::cout << "vedo dati dentro il json: " << client.decrypt_m << std::endl;canc
+            //std::cout << "vedo dati dentro il json: " << client.decrypt_m << std::endl;
             // Conversione della stringa JSON in un oggetto JSON
             data = string_to_json(client.decrypt_m);
             
@@ -147,28 +291,68 @@ void protocol(json& data, protocollo& client){
                 std::exit(-1);
             }
         case 5://il client manda la password(comunicazione tramite segreto condiviso)
-            std::cout << "Fase 5, il segreto condiviso è stato calcolato con successo." << std::endl;
+            //std::cout << "Fase 5, il segreto condiviso è stato calcolato con successo." << std::endl;
             //std::cout << "Dati dentro il json alla fase finale" << data.dump(4) << std::endl;
             remove_json(data, "S_DH");
             remove_json(data, "Timestamp");
 
-            add_json(data, "key", sha256(client.password));
-
+            add_json(data, "key", sha256(inseriment_password()));
             //std::cout << "password inserita utente: " << data["key"] << std::endl;
             
-            //std::cout << "vediamo prima di criptare" << json_to_string(data) << std::endl;
             client.crypt_m = encrypt_AES_GCM(client.shared_key, json_to_string(data));
             //std::cout << "vediamo il messaggio criptato" << client.crypt_m << std::endl;
             client.fase = 6;
             break;
         case 6://il client aspetta di ricevere il messaggio(comunicazione tramite segreto condiviso)
-            std::cout << "Fase 6" << std::endl;
+            //std::cout << "Fase 6" << std::endl;
+            //Decripto il messaggio da stampare ottenuto dal server
             client.decrypt_m = decrypt_AES_GCM(client.shared_key, client.crypt_m);
-            std::cout << "vediamo il messaggio decriptato " << client.decrypt_m << std::endl;
-            client.crypt_m = encrypt_AES_GCM(client.shared_key, "ciao1");
-            std::cout << "vediamo il messaggio criptato" << client.crypt_m << std::endl;
-            client.fase = 5;
-            exit(0);
+            //lo mostro a schermo
+            //lo converto
+            data = string_to_json(client.decrypt_m);
+
+            if(data["Message"] == "errore")
+            {
+                std::cout << "Passoword e/o nome utente sbagliato/i" << std::endl;
+                exit(-1);
+            }
+            //lo mostro pulito a schermo
+            //std::cout << data.dump(4) << std::endl;
+            client.message = data["Message"];
+            switch(client.action){
+                case 1: 
+                        std::cout << "Questo è il tuo bilancio attuale: " << client.message << "€" << std::endl;
+                        break;
+                case 2: 
+                        std::cout << client.message << std::endl;
+                        break;
+                case 3: 
+                        //pulisco l'input
+                        std::cout << "history" << std::endl;
+                        client.message.erase(std::remove_if(client.message.begin(), client.message.end(), [](char c) { return c == '\"'; }), client.message.end());
+                        std::replace(client.message.begin(), client.message.end(), '{', ' ');
+                        std::replace(client.message.begin(), client.message.end(), '}', ' ');
+                        std::replace(client.message.begin(), client.message.end(), ',', ' ');
+                        std::cout << "Il risultato della tua operazione è: " << client.message << std::endl;
+                        break;
+                case 4: 
+                        std::cout << "Logout" << std::endl;
+                        //std::cout << "Il risultato della tua operazione è: " << data["Action"] << std::endl;
+                        exit(1);
+                case 5: break;
+            }
+            //scelgo l'azione da fare
+            input = generate_menu(data);
+            //l'aggiungo al mio json
+            add_json(data, "Action", std::to_string(input));
+            data["Action"] = input;
+            client.action = input;
+            //std::cout << "Prima di mandare l'azione al server " << data.dump(4) << std::endl;
+            //lo converto e lo cripto
+            client.message = json_to_string(data);
+            client.crypt_m = encrypt_AES_GCM(client.shared_key, client.message);
+
+            //exit(0);
             break;
         default:
             std::cout << "Invalid phase" << std::endl;
@@ -176,57 +360,17 @@ void protocol(json& data, protocollo& client){
     }
 }
 
-// void shared_secret_communication(json& data, protocollo& client, int sockfd){
-//     char recvline[1000];
-//     int n;
-//     std::string ciao = encrypt_AES_GCM(client.shared_key, "ciao");
-//     std::cout << "vediamo il messaggio criptato" << ciao << std::endl;
-//     std::string ciao_d = decrypt_AES_GCM(client.shared_key, ciao);
-//     std::cout << "vediamo il messaggio decriptato " << ciao_d << std::endl;
-
-    // for(;;){
-
-    //     send(sockfd, ciao.c_str(), ciao.length(),0);
-    //     // if((int)data["Fase"]==3)
-    //     // {
-    //     //     return 1;
-    //     // }
-    //     //aspetto risposta dal server
-    //     // metto in un vettore i dati ricevuti dal server
-    //     n=recv(sockfd,recvline,999,0);
-    //     recvline[n]=0;
-    // }
-// }
-
 int main(int argc, char **argv){
     
     int sockfd, n;
     struct sockaddr_in local_addr, dest_addr;
     //char sendline[1000];
     char recvline[1000];
-
-    if (argc != 3)
-    { 
-        printf("write username and password!");
-        return 1;
-    }
-
+	std::string username = inserimento_nome_utente();
     json data = {
-        {"Username", argv[1]},
+        {"Username", username},
         {"Fase", 1}
     };
-
-    std::string key_pem = "_private_key.pem";
-	std::string username = argv[1];
-	std::string password = argv[2];
-    std::string test = (username.append("ciao")).c_str();
-    //char* = (username.append("ciao")).c_str();
-	if(username.size() > 20 || password.size() > 20){
-        printf("Username or password too long");
-        return 2;
-    }
-	std::cout << "Username: " << username << std::endl;
-	std::cout << "Password: " << password << std::endl;
 
     sockfd=socket(AF_INET,SOCK_STREAM,0);//connessione TCP
     memset( &dest_addr, 0, sizeof(dest_addr));//puliamo tutto mettendo 0
@@ -238,9 +382,7 @@ int main(int argc, char **argv){
     
     //inizio alcune variabili utili
     protocollo client;
-    client.password = password;
-    while (exit_command != "quit")
-        
+    while (client.action != 4)     
     {   
         protocol(data, client);
 
@@ -249,13 +391,19 @@ int main(int argc, char **argv){
         //aspetto risposta dal server
         // metto in un vettore i dati ricevuti dal server
         n=recv(sockfd,recvline,999,0);
+        if(n==0)
+            {
+                std::cout << "Il server ha rifiutato la connessione" << std::endl;
+                return 0;    
+            }
         recvline[n]=0;
-
         // metto il contenuto del pacchetto dentro message
         client.crypt_m = std::string(recvline, n);
 
-        std::cout << "Fase: " << data["Fase"] << " fine." << std::endl;
+        //std::cout << "Fase: " << data["Fase"] << " fine." << std::endl;
         //std::cout << "Dati dentro il json(client)" << data.dump(4) << std::endl;
         //break;
     }
+    close(sockfd);
+return 1;
 }

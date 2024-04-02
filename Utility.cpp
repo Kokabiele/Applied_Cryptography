@@ -16,12 +16,86 @@
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
-void clear_shared_key(std::vector<unsigned char>& shared_key) {
-    // Utilizza OPENSSL_cleanse per sovrascrivere la chiave con zeri
-    OPENSSL_cleanse(shared_key.data(), shared_key.size());
-    // Poi svuota il vettore
-    shared_key.clear();
+
+
+std::string decrypt_AES_GCM_file(const std::vector<unsigned char>& key, const std::string& encrypted_file_path) {
+    // Verifica che la chiave sia di lunghezza corretta
+    if (key.size() != 32) {
+        std::cerr << "La lunghezza della chiave deve essere di 32 byte (256 bit)" << std::endl;
+        return "";
+    }
+
+    // Apri il file criptato in modalità binaria
+    std::ifstream encrypted_file(encrypted_file_path, std::ios::binary);
+    if (!encrypted_file.is_open()) {
+        std::cerr << "Impossibile aprire il file criptato: " << encrypted_file_path << std::endl;
+        return "";
+    }
+
+    // Leggi il contenuto del file criptato in un vettore di byte
+    std::vector<unsigned char> encrypted_data(std::istreambuf_iterator<char>(encrypted_file), {});
+
+    // Estrai il vettore di inizializzazione (IV) e il tag di autenticazione dal file criptato
+    unsigned char iv[12];
+    unsigned char tag[16];
+    std::copy(encrypted_data.begin(), encrypted_data.begin() + 12, iv);
+    std::copy(encrypted_data.end() - 16, encrypted_data.end(), tag);
+
+    // Calcola la lunghezza del ciphertext
+    int ciphertext_len = encrypted_data.size() - 12 - 16;
+
+    // Ottieni il ciphertext dal file criptato
+    unsigned char* ciphertext = encrypted_data.data() + 12;
+
+    // Crea un buffer per il plaintext decriptato
+    std::vector<unsigned char> plaintext(ciphertext_len);
+
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx) {
+        std::cerr << "Errore durante l'inizializzazione del contesto di decrittografia." << std::endl;
+        return "";
+    }
+
+    // Inizializza il contesto di decrittografia per AES in modalità GCM
+    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL) != 1) {
+        std::cerr << "Errore durante l'inizializzazione del contesto di decrittografia AES-GCM." << std::endl;
+        EVP_CIPHER_CTX_free(ctx);
+        return "";
+    }
+
+    // Imposta la chiave, il vettore di inizializzazione e il tag di autenticazione
+    if (EVP_DecryptInit_ex(ctx, NULL, NULL, key.data(), iv) != 1) {
+        std::cerr << "Errore durante l'impostazione della chiave, del vettore di inizializzazione e del tag di autenticazione." << std::endl;
+        EVP_CIPHER_CTX_free(ctx);
+        return "";
+    }
+
+    // Decritta il ciphertext
+    int len = 0;
+    int plaintext_len = 0;
+    if (EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext, ciphertext_len) != 1) {
+        std::cerr << "Errore durante la decrittografia del file." << std::endl;
+        EVP_CIPHER_CTX_free(ctx);
+        return "";
+    }
+    plaintext_len = len;
+
+    // Completa l'operazione di decrittografia
+    if (EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len) != 1) {
+        std::cerr << "Errore durante il completamento dell'operazione di decrittografia." << std::endl;
+        EVP_CIPHER_CTX_free(ctx);
+        return "";
+    }
+    plaintext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+
+    // Converte il plaintext decriptato in una stringa
+    std::string decrypted_message(reinterpret_cast<char*>(plaintext.data()), plaintext_len);
+
+    return decrypted_message;
 }
+
 
 //test per criptazioni con segreto condiviso
 void handleErrors() {
@@ -94,7 +168,7 @@ std::string encrypt_AES_GCM(const std::vector<unsigned char>& key, const std::st
 std::string decrypt_AES_GCM(const std::vector<unsigned char>& key, const std::string& encrypted_message) {
     // Verifica che la chiave sia di lunghezza corretta
     if (key.size() != 256) {
-        std::cerr << "La lunghezza della chiave deve essere di 512 byte" << std::endl;
+        std::cerr << "La lunghezza della chiave deve essere di 256 byte" << std::endl;
         return "";
     }
 
@@ -143,6 +217,11 @@ std::string decrypt_AES_GCM(const std::vector<unsigned char>& key, const std::st
     // Restituisce il plaintext decifrato
     return std::string(reinterpret_cast<char*>(plaintext), plaintext_len);
 }
+
+void encrypt_AES_GCM_file(const std::vector<unsigned char>& key, const std::string& input_file_path, const std::string& output_file_path) {
+
+}
+
 
 //crypt e decrypt a blocchi.
 std::string encrypt_private_key_RSA_block(const std::string& message, const char* private_key_path) {
@@ -256,7 +335,6 @@ std::string decrypt_public_key_RSA_block(const std::string& encrypted_message, c
 
     // Ottieni la dimensione massima dei blocchi crittografici
     int max_length = RSA_size(rsa_pubkey);
-    std::cout << "lunghezza chiave RSA: " << max_length << std::endl;
     std::string decrypted_message;
 
     // Decripta i blocchi della stringa encrypted_message
@@ -357,6 +435,30 @@ std::vector<unsigned char> hexToBytes(const std::string& hex) {
 
 //Hashing with SHA-256
 std::string sha256(std::string& input) {
+    
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    std::string hashedString = "";
+
+    // Inizializza il contesto SHA256
+    SHA256_Init(&sha256);
+    // Aggiunge i dati della stringa di input al contesto SHA256
+    SHA256_Update(&sha256, input.c_str(), input.length());
+    // Calcola l'hash SHA256 finale e lo memorizza in 'hash'
+    SHA256_Final(hash, &sha256);
+
+    // Converte l'hash binario in una stringa esadecimale
+    char hex[SHA256_DIGEST_LENGTH * 2 + 1];
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        sprintf(hex + (i * 2), "%02x", hash[i]);
+    }
+
+    // Converte l'array di caratteri hex in una stringa
+    hashedString = hex;
+
+    return hashedString;
+}
+std::string sha256(std::string&& input) {
     
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
@@ -609,4 +711,7 @@ std::string json_to_string (const json& data){
 }
 json string_to_json(std::string stringa){
     return json::parse(stringa);
+}
+int string_to_int(std::string stringa){
+    return std::stoi(stringa);
 }

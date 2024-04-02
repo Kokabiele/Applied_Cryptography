@@ -15,7 +15,7 @@
 #include <chrono>
 #include "Utility.hpp"
 #include <nlohmann/json.hpp>
-using namespace std;
+//using namespace std;
 using namespace nlohmann;
 #define porta 9000
 
@@ -24,18 +24,65 @@ struct protocollo{
     std::string S_nonce;
     std::vector<unsigned char> shared_key;
     const BIGNUM* Public_key_DH;
-    DH* S_parameter;
+    DH* S_parameter = nullptr;
     std::string message;
     std::string crypt_m;//messaggio criptato
     std::string decrypt_m;//messaggio decriptato
     int fase = 1;
+    int action = 5;
 };
 
-std::string get_salt_file(const std::string username){
+void clear_variable(protocollo data) {
+   // Pulisce le stringhe
+    data.nome.clear();
+    data.S_nonce.clear();
+    data.message.clear();
+    data.crypt_m.clear();
+    data.decrypt_m.clear();
+    // Pulisce il vettore di byte
+    if(data.shared_key.size() != 0){
+        OPENSSL_cleanse(data.shared_key.data(), data.shared_key.size());
+        data.shared_key.clear();
+    }
+
+    // Pulisce i puntatori
+    if(data.Public_key_DH != nullptr)
+        data.Public_key_DH = nullptr;
+
+    // Se S_parameter non è nullptr, dealloca la memoria e imposta il puntatore a nullptr
+    if (data.S_parameter != nullptr) {
+        DH_free(data.S_parameter);
+        data.S_parameter = nullptr;
+    }
+    std::cout << "test3" << std::endl;
+
+}
+
+std::string get_current_timestamp_transfer(){
+
+    time_t rawtime = time(NULL);
+
+    const tm* time_info = localtime(&rawtime);
+    char time_buf[80];
+    strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", time_info);
+
+    return std::string(time_buf);
+}
+
+std::vector<uint8_t> adjust_password(std::vector<uint8_t> hashedPassword){
+    std::vector<uint8_t> hashedPassword2 = hashedPassword; // Crea un vettore di 64 elementi uint8_t
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//128
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//192
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//256
+    return hashedPassword2;
+}
+
+// Checker se l'utente che vuole collegarsi esiste -1 se non presente altrimenti restituisce la posizione
+int check_user(const std::string username){
     std::ifstream file("Utenti.json");
     if (!file.is_open()) {
         std::cerr << "Impossibile aprire il file JSON." << std::endl;
-        exit(-1);
+        return -1;
     }
     json jsonData;
     file >> jsonData;
@@ -44,12 +91,11 @@ std::string get_salt_file(const std::string username){
     for(int i = 0; i < jsonData.size(); i++){
         if(jsonData[i]["username"] == username)
         {
-            //std::cout << "Utente trovato dentro il json " << jsonData[i]["username"] << " == " << username << std::endl;
-            //std::cout << "sale trovato dentro il json " << jsonData[i]["salt"] << std::endl;
-            return jsonData[i]["salt"];
+            std::cout << "Utente trovato dentro il json " << jsonData[i]["username"] << " == " << username << std::endl;
+            return i;
         }
     }
-    return "-1";
+    return -1;
 }
 
 std::string get_hash_passw_file(const std::string username){
@@ -65,9 +111,141 @@ std::string get_hash_passw_file(const std::string username){
     for(int i = 0; i < jsonData.size(); i++){
         if(jsonData[i]["username"] == username)
         {
-            //std::cout << "Utente trovato dentro il json " << jsonData[i]["username"] << " == " << username << std::endl;
-            //std::cout << "password trovato dentro il json " << jsonData[i]["password"] << std::endl;
             return jsonData[i]["password"];
+        }
+    }
+    return "-1";
+}
+
+std::string get_content_file(const std::string& username){
+    std::string this_file = username + "_history.json";
+    //leggo il contenuto di this_username e lo decripto.
+    std::ifstream file(this_file, std::ios::binary); // Apri il file in modalità binaria
+    if (!file.is_open()) {
+        std::cerr << "Impossibile aprire il file." << std::endl;
+        return "-1";
+    }
+    std::vector<unsigned char> this_encryptedData((std::istreambuf_iterator<char>(file)), {});
+    std::string this_encryptedString(this_encryptedData.begin(), this_encryptedData.end());
+    // Chiudi il file
+    file.close();
+    // Decifra il contenuto criptato
+    std::vector<uint8_t> this_trueKey = adjust_password(hexToBytes(get_hash_passw_file(username)));
+    std::string this_decryptedContent = decrypt_AES_GCM(this_trueKey, this_encryptedString);
+
+    return this_decryptedContent;
+}
+void write_content_file(const std::string& username, const std::string& content_file){
+    std::string this_file = username + "_history.json";
+    std::string this_cript_m = encrypt_AES_GCM(adjust_password(hexToBytes(get_hash_passw_file(username))), content_file);
+    std::ofstream file2(this_file);
+    file2.write(this_cript_m.c_str(), this_cript_m.size());
+    file2.close();
+}
+//Get_balance opzione 1
+std::string get_user_balance(const std::string username, std::string key){
+    std::string decryptedContent = get_content_file(username);
+
+    // Ora puoi usare il contenuto decifrato come desideri
+    json jsonData = string_to_json(decryptedContent);
+    int x = jsonData["balance"];
+    std::string output = std::to_string(x);
+    return output;
+}
+
+//do transfer opzione 2 (es. lazza manda 20 a marco)
+bool Transfer(std::string this_username, std::string other_username, uint amount){
+    //controllo che l'utente non voglia trasferirsi soldi a se stesso
+    if(this_username == other_username){
+        return false;
+    }
+    //controllo che l'altro utente esiste prima di provare a trasferirgli soldi
+    if(check_user(other_username) == -1){
+        //std::cout << "Utente non trovato." << std::endl;
+        return false;
+    }
+    // Ora puoi usare il contenuto decifrato come desideri
+    json this_jsonData = string_to_json(get_content_file(this_username));
+    //leggo il contenuto di other_file e lo decripto
+    json other_jsonData = string_to_json(get_content_file(other_username));
+    //a questo punto ho decriptato entrambi i file
+    //controllo intanto se l'operazione che vuole fare this_username è valida e che abbia abbastanza soldi
+    int this_user_balance = this_jsonData["balance"];
+    if(this_user_balance < amount)
+    {
+        //std::cout << "Saldo insufficente per effettuare l'operazione." << std::endl;
+        return false;
+    }
+    //aggiusto il balance dei due utenti
+    int other_user_balance = other_jsonData["balance"];
+    other_user_balance += amount;
+    other_jsonData["balance"] = other_user_balance;
+    this_user_balance -= amount;
+    this_jsonData["balance"] = this_user_balance;
+
+    json this_user = {
+    {"Username", other_username},
+    {"Balance", "-"+std::to_string(amount)},
+    {"Timestamp", get_current_timestamp_transfer()}
+    };
+
+    json other_user = {
+    {"Username", this_username},
+    {"Balance", "+"+std::to_string(amount)},
+    {"Timestamp", get_current_timestamp_transfer()}
+    };
+
+    this_jsonData["history"].push_back(this_user);
+    other_jsonData["history"].push_back(other_user);
+
+    //scrivo per this utente
+    std::string this_scrittura = json_to_string(this_jsonData);
+    write_content_file(this_username, this_scrittura);
+    //scrivo per other utente
+    std::string other_scrittura = json_to_string(other_jsonData);
+    write_content_file(other_username, other_scrittura);
+    return true;
+}
+
+//check history opzione 3
+std::string check_history(const std::string username){
+    std::string output;
+    std::string decryptedContent = get_content_file(username);
+
+    // Ora puoi usare il contenuto decifrato come desideri
+    json jsonData = string_to_json(decryptedContent);
+    int j;
+    // json jsonData;
+    // file >> jsonData;
+    if(jsonData["history"].size() > 3)//se c'è molto storico
+    {
+        j = jsonData["history"].size();
+        for(int i = (jsonData["history"].size()-3); i < j; i++){
+            output.append(jsonData["history"][i].dump(0));
+        }
+    }else
+    {
+        for(int i = jsonData["history"].size(); i == 0; i--){
+            output.append(jsonData["history"][i].dump(0));
+        }
+    }
+    return output;
+}
+
+std::string get_salt_file(const std::string username){
+    std::ifstream file("Utenti.json");
+    if (!file.is_open()) {
+        std::cerr << "Impossibile aprire il file JSON." << std::endl;
+        exit(-1);
+    }
+    json jsonData;
+    file >> jsonData;
+    
+    file.close();
+    for(int i = 0; i < jsonData.size(); i++){
+        if(jsonData[i]["username"] == username)
+        {
+            return jsonData[i]["salt"];
         }
     }
     return "-1";
@@ -78,27 +256,6 @@ std::vector<unsigned char> calculatePasswordHash(const std::string& password, co
     std::vector<unsigned char> key(EVP_MAX_KEY_LENGTH); // Lunghezza massima della chiave
     PKCS5_PBKDF2_HMAC(password.c_str(), password.length(), salt.data(), salt.size(), 1000, EVP_sha256(), key.size(), key.data());
     return key;
-}
-
-// Checker se l'utente che vuole collegarsi esiste -1 se non presente altrimenti restituisce la posizione
-int check_user(const std::string username){
-    std::ifstream file("Utenti.json");
-    if (!file.is_open()) {
-        std::cerr << "Impossibile aprire il file JSON." << std::endl;
-        return 1;
-    }
-    json jsonData;
-    file >> jsonData;
-    
-    file.close();
-    for(int i = 0; i < jsonData.size(); i++){
-        if(jsonData[i]["username"] == username)
-        {
-            std::cout << "Utente trovato dentro il json " << jsonData[i]["username"] << " == " << username << std::endl;
-            return i;
-        }
-    }
-    return -1;
 }
 
 // Controllo per l'inserimento corretto della password
@@ -125,23 +282,24 @@ void protocol(json& data, protocollo& server){
             // Conversione della stringa JSON in un oggetto JSON
             data = string_to_json(server.decrypt_m);
 
-            std::cout << "Dati dentro il json (server)" << data.dump(4) << std::endl;
+            //std::cout << "Dati dentro il json (server)" << data.dump(4) << std::endl;
 
             //controllo se l'utente esiste
             if(check_user(data["Username"]) == -1){
                 std::cout << "Utente non trovato" << std::endl;
-                exit(-1);
+                //aggiungo il messaggio di ok
+                add_json(data, "Message", "non-ok");
+                server.action = 4;
             }else
             {
                 std::cout << "Utente trovato" << std::endl;
                 server.nome = data["Username"];
+                //aggiungo il messaggio di ok
+                add_json(data, "Message", "ok");
             }
 
             //aggiorno la fase
             data["Fase"] = 2;
-
-            //aggiungo il messaggio di ok
-            add_json(data, "Message", "ok");
 
             //incremento la nonce del client
             data["C_nonce"] = incrementNonce(data["C_nonce"]);
@@ -164,10 +322,6 @@ void protocol(json& data, protocollo& server){
             //preparo il server per la fase successiva
             server.fase = 3;
             break;
-        case 2:
-            // non ci entro
-            std::cout << "Fase 2?" << std::endl;
-            break;
         case 3:
             // ricevo dal client la nonce +1 e Ya
             std::cout << "Fase 3 -> 4" << std::endl;
@@ -180,9 +334,6 @@ void protocol(json& data, protocollo& server){
             if(!check_nonce(server.S_nonce, data["S_nonce"])){
                 std::cout << "Nonce errata" << std::endl;
                 exit(-1);
-            }else{
-                std::cout << "Nonce ricevuta(server che torna): " << data["S_nonce"] << std::endl;
-                std::cout << "Nonce salvata: " << server.S_nonce << std::endl;
             }
             
             //genero i parametri del server
@@ -218,9 +369,6 @@ void protocol(json& data, protocollo& server){
             data["Fase"] = 5;
             server.fase = 5;
             break;
-        case 4:
-            std::cout << "Fase 4" << std::endl;
-            break;
         case 5://faccio il check della password
             std::cout << "Fase 5" << std::endl;
             server.decrypt_m = decrypt_AES_GCM(server.shared_key, server.crypt_m);
@@ -228,17 +376,50 @@ void protocol(json& data, protocollo& server){
             
             if(comparePasswordHash(data["key"], get_salt_file(server.nome), get_hash_passw_file(server.nome)))
             {
-                std::cout << "Passowrd corretta" << std::endl;  
+                std::cout << "Passowrd corretta" << std::endl;
+                add_json(data, "Message", "Login avvenuto con successo");
             }else{
-                std::cout << "Passoword e/o nome utente sbagliato/i" << std::endl;  
+                add_json(data, "Message", "errore");
+                std::cout << "Passoword e/o nome utente sbagliato/i" << std::endl;
+                server.action = 4;
             }
+            //std::cout << "vediamo il messaggio criptato" << data.dump(4) << std::endl;
+            remove_json(data, "key");
             //da qui devo avviare la comunicazione per i vari servizi.
-            server.crypt_m = encrypt_AES_GCM(server.shared_key, "ciao");
-            std::cout << "vediamo il messaggio criptato" << server.crypt_m << std::endl;
+            server.crypt_m = encrypt_AES_GCM(server.shared_key, json_to_string(data));
+            //std::cout << "vediamo il messaggio criptato" << server.crypt_m << std::endl;
             server.fase = 6;
             break;
         case 6:
             std::cout << "Fase 6" << std::endl;
+            server.decrypt_m = decrypt_AES_GCM(server.shared_key, server.crypt_m);
+            data = string_to_json(server.decrypt_m);
+            switch((int)data["Action"]){
+                case 1: 
+                        std::cout << "Questo è il tuo bilancio attuale: " << get_user_balance(server.nome, get_hash_passw_file(server.nome)) << std::endl;
+                        data["Message"] = server.nome +" "+get_user_balance(server.nome, get_hash_passw_file(server.nome));
+                        break;
+                case 2: 
+                        std::cout << "Operazione di trasferimento." << std::endl;
+                        if(Transfer(server.nome, data["other_username"], string_to_int(data["amount"]))){
+                            data["Message"] = "Trasferimento avvenuto con successo";
+                        }else{
+                            data["Message"] = "Bilancio non sufficente oppure utente non esistente";
+                        }
+                        remove_json(data, "amount");
+                        remove_json(data, "other_username");
+                        break;
+                case 3: 
+                        std::cout << "history" << std::endl;
+                        data["Message"] = check_history(server.nome);
+                        break;
+                case 4: 
+                        std::cout << "Logout" << std::endl;
+                        data["Message"] = "Logout avvenuto con successo";
+                        server.action = 4;
+                
+            }
+            server.crypt_m = encrypt_AES_GCM(server.shared_key, json_to_string(data));
             break;
         default:
             std::cout << "Invalid phase" << std::endl;
@@ -273,40 +454,40 @@ int main(int argc, char**argv)
         printf("\nErrore nel binding. Errore %d \n", errno);
         return -1;
     }
-    listen(sockfd,1);
+    listen(sockfd,0);
+    
     for(;;)
-    { 
+    {
+
         len = sizeof(remote_addr);
+        std::cout << "Aspetto un client." << std::endl;
         newsockfd = accept(sockfd,(struct sockaddr *) &remote_addr, &len);
-        if (fork() == 0)
+        std::cout << "Ho trovato un client" << std::endl;
+        protocollo server;
+        json data;
+        while(server.action != 4)
         {
-            close(sockfd);
-            protocollo server;
-            json data;
-            for(;;)
+            //ricevo il pacchetto
+            n = recv(newsockfd,recvline,999,0);
+            if(n==0)
             {
-                //ricevo il pacchetto
-                n = recv(newsockfd,recvline,999,0);
-                if(n==0)
-                {
-                    std::cout << "errore nella comunicazione" << std::endl;
-                    return 0;    
-                }
-                recvline[n] = 0;
-                
-                // converto quello che ricevo in una stringa
-                server.crypt_m = std::string(recvline, n);
+                std::cout << "errore nella comunicazione" << std::endl;
+                return 0;    
+            }
+            recvline[n] = 0;
+            
+            // converto quello che ricevo in una stringa
+            server.crypt_m = std::string(recvline, n);
 
-                //chiamo il protocollo
-                protocol(data, server);
+            //chiamo il protocollo
+            protocol(data, server);
 
-                //mando il pacchetto al client
-                int z = send(newsockfd, server.crypt_m.c_str(), server.crypt_m.length(),0);
-                std::cout << "socket number: " << z << std::endl;
-            } 
-            return 0; 
-        }else{
-            close(newsockfd);
-        }
+            //mando il pacchetto al client
+            send(newsockfd, server.crypt_m.c_str(), server.crypt_m.length(),0);
+        } 
+        close(newsockfd);
+        clear_variable(server);
     }
+    close(sockfd);
+    return 0;
 }

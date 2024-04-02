@@ -26,10 +26,9 @@
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/ContinuousCoverage.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/ContinuousMemCheck.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/ContinuousSubmit.dir
-/home/user/mio_progetto_crittogragia/build/CMakeFiles/Client_2.dir
+/home/user/mio_progetto_crittogragia/build/CMakeFiles/Client.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/Server.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/User_account.dir
-/home/user/mio_progetto_crittogragia/build/CMakeFiles/Tester.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/package.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/package_source.dir
 /home/user/mio_progetto_crittogragia/build/CMakeFiles/test.dir

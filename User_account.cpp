@@ -12,6 +12,36 @@
 
 using json = nlohmann::json;
 
+std::vector<uint8_t> adjust_password(std::vector<uint8_t> hashedPassword){
+    std::vector<uint8_t> hashedPassword2 = hashedPassword; // Crea un vettore di 64 elementi uint8_t
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//128
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//192
+    hashedPassword2.insert(hashedPassword2.end(), hashedPassword.begin(), hashedPassword.end());//256
+    return hashedPassword2;
+}
+//genero uno stato iniziale dell'utente.
+void create_user_history(const std::string& username, int balance, const std::vector<json>& history, std::vector<unsigned char> key) {
+    json userData;
+    userData["Username"] = username;
+    userData["balance"] = balance;
+    userData["history"] = history;
+
+    std::string risultato = username + "_history.json";
+    std::string scrittura = json_to_string(userData);
+    std::string cript_m = encrypt_AES_GCM(key, scrittura);
+    std::string decript_m = decrypt_AES_GCM(key, cript_m);
+    // Apre il file in modalità di scrittura
+    std::ofstream file(risultato);
+    std::cout << "la chiave è: " << bytesToHex(key) << std::endl;
+    std::cout << "input del file criptato: " << cript_m << std::endl;
+    std::cout << "input del file decriptato: " << decript_m << std::endl;
+    // Scrive il contenuto della struttura JSON nel file
+    file.write(cript_m.c_str(), cript_m.size());
+
+    // Chiude il file
+    file.close();
+}
+
 //generazione delle chiavi insieme all'utente.
 void generate_RSA_key_pair(const std::string& private_key_file, const std::string& public_key_file, int key_length = 2048) {
     EVP_PKEY_CTX *ctx = NULL;
@@ -181,7 +211,7 @@ int main() {
     // Leggi il nome utente e la password inseriti dall'utente
     std::cout << "Inserisci il nome utente: ";
     std::cin >> nomeUtente;
-    //check_user(nomeUtente);
+    check_user(nomeUtente);
     std::cout << "Inserisci la password: ";
     std::cin >> password;
 
@@ -225,21 +255,24 @@ int main() {
         fileUtenti.close();
         std::cout << "Dati dell'utente aggiunti con successo al file 'Utenti.json'" << std::endl;
         generate_RSA_key_pair(private_key_path, public_key_path, 3072);
-        // std::cout << "facciamo un test ora ricalcolo tutto e vedo se matcha" << std::endl;
-        // std::vector<unsigned char> hashedPassword_2 = deriveKey(password_2, salt);
-        // std::string hashedPasswordString_2 = bytesToHex(hashedPassword_2);
-        // if(hashedPasswordString_2 == utente["password"])
-        // {
-        //     std::cout << "funziona" << std::endl;
-        //     std::cout << "password ricalcolata: " << hashedPasswordString_2 << std::endl;
-        //     std::cout << "password ricalcolata: " << utente["password"] << std::endl;
-
-        // }else{
-
-        //     std::cout << "non funziona" << std::endl;
-        //     std::cout << "password ricalcolata: " << hashedPasswordString_2 << std::endl;
-        //     std::cout << "password ricalcolata: " << utente["password"] << std::endl;
-        // }
+        json data = {
+            {"Username", nomeUtente},
+            {"Balance", +50},
+            {"Timestamp", "2024-03-05 10:30:00"}
+        };
+        json data1 = {
+            {"Username", nomeUtente},
+            {"Balance", -20},
+            {"Timestamp", "2023-03-05 10:30:00"}
+        };
+        json data2 = {
+            {"Username", nomeUtente},
+            {"Balance", +10},
+            {"Timestamp", "2021-03-05 10:30:00"}
+        };
+        std::vector<json> history = {data, data1, data2};
+        create_user_history(nomeUtente, 100, history, adjust_password(hashedPassword));
+       
     } else {
         std::cerr << "Errore nell'apertura del file 'Utenti.json'" << std::endl;
     }

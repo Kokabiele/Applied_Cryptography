@@ -4,17 +4,15 @@ add_subdirectory(json)
 include(CTest)
 enable_testing()
 
-add_executable(Client_2 Client.cpp Utility.cpp Utility.hpp)#aggiungere a manina i file .cpp qui
+add_executable(Client Client.cpp Utility.cpp Utility.hpp)
 add_executable(Server Server.cpp Utility.cpp Utility.hpp)
 add_executable(User_account User_account.cpp Utility.cpp Utility.hpp)
-add_executable(Tester tester.cpp)
 
 
 find_package(OpenSSL REQUIRED)
 target_link_libraries(Server nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(Client_2 nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(Client nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(User_account nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(Tester nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -9,6 +9,7 @@ using namespace nlohmann;
 
 //funzioni per la gestione dell'hash
 std::string sha256(std::string& input);
+std::string sha256(std::string&& input);
 bool compareHash(const std::string& inputHash, const std::string& knownHash);
 
 //funzioni per la gestione del timestamp
@@ -49,11 +50,14 @@ std::string encrypt_public_key_RSA_block(const std::string& message, const char*
 std::string decrypt_AES_GCM(const std::vector<unsigned char>& key, const std::string& encrypted_message);
 std::string encrypt_AES_GCM(const std::vector<unsigned char>& key, const std::string& plaintext);
 
+//funzioni per la crittografia simmetrica per i file
+std::string encrypt_AES_GCM_file(const std::vector<unsigned char>& key, const std::string& input_file_path, const std::string& output_file_path);
+std::string decrypt_AES_GCM_file(const std::vector<unsigned char>& key, const std::string& encrypted_file_path);
+
 //funzioni per lavorare sui dati json
 void add_json (json& data, std::string key, std::string new_value);
 void remove_json (json& data, std::string key);
 std::string json_to_string (const json& data);
 json string_to_json(std::string stringa);
-
-void clear_shared_key(std::vector<unsigned char>& shared_key);
+int string_to_int(std::string stringa);
 #endif
